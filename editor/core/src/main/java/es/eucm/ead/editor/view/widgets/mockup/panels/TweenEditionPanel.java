@@ -210,8 +210,8 @@ public class TweenEditionPanel extends HiddenPanel {
 	}
 
 	private void showMove(Stage stage) {
-		this.lft.setText(i18n.m("general.edition.tween.goal") + " X:");
-		this.rgt.setText(i18n.m("general.edition.tween.goal") + " Y:");
+		this.lft.setText(i18n.m("general.edition.tween.move") + " X:");
+		this.rgt.setText(i18n.m("general.edition.tween.move") + " Y:");
 
 		MoveTween aux = (MoveTween) tween;
 		xText.setText("" + aux.getX());
