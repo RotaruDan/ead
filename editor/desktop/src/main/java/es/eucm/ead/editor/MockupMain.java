@@ -54,7 +54,7 @@ import es.eucm.ead.editor.control.Controller;
 import es.eucm.ead.editor.control.actions.editor.ChangeView;
 import es.eucm.ead.editor.platform.DevicePictureControl;
 import es.eucm.ead.editor.platform.DeviceVideoControl;
-import es.eucm.ead.editor.view.builders.mockup.menu.InitialScreen;
+import es.eucm.ead.editor.view.builders.mockup.menu.SplashScreen;
 import es.eucm.ead.engine.utils.SwingEDTUtils;
 
 public class MockupMain {
@@ -213,7 +213,7 @@ public class MockupMain {
 
 			@Override
 			protected void initialize() {
-				super.controller.action(ChangeView.class, InitialScreen.class);
+				super.controller.action(ChangeView.class, SplashScreen.class);
 			}
 
 			@Override
