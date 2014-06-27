@@ -34,44 +34,47 @@
  *      You should have received a copy of the GNU Lesser General Public License
  *      along with eAdventure.  If not, see <http://www.gnu.org/licenses/>.
  */
-package es.eucm.ead.android;
+package es.eucm.ead.editor.view.builders.mockup.menu;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.utils.viewport.ExtendViewport;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.Scaling;
 
-import es.eucm.ead.editor.EditorApplicationListener;
 import es.eucm.ead.editor.control.Controller;
 import es.eucm.ead.editor.control.actions.editor.ChangeView;
-import es.eucm.ead.editor.platform.Platform;
-import es.eucm.ead.editor.view.builders.mockup.menu.SplashScreen;
+import es.eucm.ead.editor.view.builders.ViewBuilder;
 
-public class AndroidEditorApplicationListener extends EditorApplicationListener {
+public class SplashScreen implements ViewBuilder {
 
-	public AndroidEditorApplicationListener(Platform platform) {
-		super(platform);
+	private static final String IC_LOGO = "ic_logo";
+
+	private Actor view;
+
+	@Override
+	public Actor getView(Object... args) {
+		return view;
 	}
 
 	@Override
-	public void resize(int width, int height) {
-		super.stage.getViewport().update(width, height, true);
+	public void initialize(final Controller controller) {
+
+		Skin skin = controller.getApplicationAssets().getSkin();
+		Image logo = new Image(skin.getDrawable(IC_LOGO));
+		logo.setScaling(Scaling.fit);
+		logo.setFillParent(true);
+		logo.addListener(new ClickListener() {
+			@Override
+			public void clicked(InputEvent event, float x, float y) {
+				controller.action(ChangeView.class, InitialScreen.class);
+			}
+		});
+		view = logo;
 	}
 
 	@Override
-	protected void initialize() {
-		super.controller.action(ChangeView.class, SplashScreen.class);
-	}
-
-	@Override
-	protected Stage createStage() {
-		final Vector2 viewport = super.platform.getSize();
-		return new Stage(new ExtendViewport(viewport.x, viewport.y));
-	}
-
-	@Override
-	protected Controller createController() {
-		return new AndroidController(this.platform, Gdx.files,
-				super.stage.getRoot());
+	public void release(Controller controller) {
 	}
 }
