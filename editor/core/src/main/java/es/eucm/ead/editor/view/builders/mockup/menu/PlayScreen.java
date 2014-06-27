@@ -45,6 +45,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Stack;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
+import es.eucm.ead.editor.components.EditorImageComponent;
 import es.eucm.ead.editor.control.Controller;
 import es.eucm.ead.editor.view.builders.ViewBuilder;
 import es.eucm.ead.editor.view.widgets.EnginePlayer;
@@ -92,6 +93,7 @@ public class PlayScreen implements ViewBuilder {
 
 	@Override
 	public Actor getView(Object... args) {
+		EditorImageComponent.DRAW_DEBUG = false;
 		ModelEntity game = controller.getModel().getGame();
 		controller.getEngine().setGameView(enginePlayer);
 		controller.getEngine().play(game);
@@ -102,5 +104,6 @@ public class PlayScreen implements ViewBuilder {
 	public void release(Controller controller) {
 		controller.getEngine().stop();
 		controller.getEngine().setGameView(null);
+		EditorImageComponent.DRAW_DEBUG = true;
 	}
 }

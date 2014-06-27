@@ -51,6 +51,8 @@ import es.eucm.ead.engine.components.renderers.ImageComponent;
  */
 public class EditorImageComponent extends ImageComponent {
 
+	public static boolean DRAW_DEBUG = true;
+
 	private ShapeRenderer shapeRenderer;
 
 	private Preferences preferences;
@@ -66,7 +68,7 @@ public class EditorImageComponent extends ImageComponent {
 	@Override
 	public void draw(Batch batch) {
 		super.draw(batch);
-		if (getCollider() != null) {
+		if (DRAW_DEBUG && getCollider() != null) {
 			batch.end();
 			Gdx.gl.glEnable(GL20.GL_BLEND);
 			Gdx.gl.glBlendFunc(GL20.GL_ONE, GL20.GL_DST_COLOR);
