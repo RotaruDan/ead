@@ -36,6 +36,7 @@
  */
 package es.eucm.ead.editor.view.widgets.mockup.edition;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
@@ -125,8 +126,12 @@ public abstract class MoreComponent extends EditionComponent {
 		cloneButton.addListener(new ChangeListener() {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
-				controller.action(Clone.class);
-				clonedNotif.show(getStage(), DEFAULT_TIMEOUT);
+				try {
+					controller.action(Clone.class);
+					clonedNotif.show(getStage(), DEFAULT_TIMEOUT);
+				} catch (Exception e) {
+					Gdx.app.log("CLONE", "", e);
+				}
 			}
 		});
 		controller.getActions().addActionListener(Clone.class,
