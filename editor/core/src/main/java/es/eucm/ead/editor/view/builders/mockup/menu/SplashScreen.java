@@ -64,7 +64,8 @@ public class SplashScreen implements ViewBuilder {
 		Skin skin = controller.getApplicationAssets().getSkin();
 		Image logo = new Image(skin.getDrawable(IC_LOGO));
 		logo.setScaling(Scaling.fit);
-		logo.setFillParent(true);
+		// logo.setFillParent(true);
+		logo.setPosition(300, 260);
 		logo.addListener(new ClickListener() {
 			@Override
 			public void clicked(InputEvent event, float x, float y) {
