@@ -222,6 +222,9 @@
             "over": "focus",
             "down": "bg-dark"
         },
+        "bubble": {
+            "up": "bubble"
+        },
         "white": {
             "up": "bg-transparent",
             "over": "bg-white-semitransparent"

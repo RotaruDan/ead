@@ -170,7 +170,6 @@ public class DraggableScrollPane extends ScrollPane {
 	@Override
 	public void clearChildren() {
 		clearDrag();
-		super.clearChildren();
 	}
 
 	public float getActionZone() {

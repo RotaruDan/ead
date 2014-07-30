@@ -67,6 +67,10 @@ public class Selection {
 
 	public static final String RESOURCE = "resource";
 
+	public static final String CONVERSATION = "conversation";
+
+	public static final String NODE = "node";
+
 	private int pointer = -1;
 
 	private Array<Context> contexts;

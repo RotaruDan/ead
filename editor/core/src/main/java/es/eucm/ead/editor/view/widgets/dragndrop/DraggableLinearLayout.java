@@ -79,6 +79,11 @@ public class DraggableLinearLayout extends DraggableScrollPane {
 	}
 
 	@Override
+	public void clearChildren() {
+		itemsList.clear();
+	}
+	
+	@Override
 	protected void clearDrag() {
 		super.clearDrag();
 		addTarget(listTarget);

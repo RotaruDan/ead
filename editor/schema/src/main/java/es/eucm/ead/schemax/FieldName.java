@@ -164,6 +164,35 @@ public class FieldName {
 	COLUMNS = "columns",
 
 	/**
+	 * Refers to {@link es.eucm.ead.schema.components.conversation.Node#id}
+	 */
+	NODE_ID = "id",
+
+	/**
+	 * Refers to
+	 * {@link es.eucm.ead.schema.components.conversation.SimpleNode#nextNodeId}
+	 */
+	NEXT_NODE_ID = "nextNodeId",
+
+	/**
+	 * Refers to
+	 * {@link es.eucm.ead.schema.components.conversation.LineNode#speaker}
+	 */
+	NODE_SPEAKER = "speaker",
+
+	/**
+	 * Refers to
+	 * {@link es.eucm.ead.schema.components.conversation.LineNode#line}
+	 */
+	NODE_LINE = "line",
+
+	/**
+	 * Refers to
+	 * {@link es.eucm.ead.schema.components.conversation.WaitNode#time}
+	 */
+	NODE_WAIT_TIME = "time",
+
+	/**
 	 * Refers to {@link es.eucm.ead.schema.components.controls.Label#text}
 	 */
 	TEXT = "text";
