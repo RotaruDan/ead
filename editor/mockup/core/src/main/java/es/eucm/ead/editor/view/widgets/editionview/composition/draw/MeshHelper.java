@@ -203,6 +203,9 @@ public class MeshHelper implements Disposable {
 	private ShaderProgram meshShader;
 	private Mesh mesh;
 
+	private Texture tx = new Texture(
+			Gdx.files.internal("skins/mockup-hdpi/gradient.png"));
+
 	/**
 	 * Handles all the necessary data required to draw brush strokes, undo/redo
 	 * and delete them. The {@link #scaledView} parameter will be used to
@@ -406,8 +409,8 @@ public class MeshHelper implements Disposable {
 	 * define a position.
 	 */
 	private void createMesh() {
-		this.mesh = new Mesh(true, MAX_VERTICES, 0, new VertexAttribute(
-				Usage.Position, 2, "a_position"));
+		this.mesh = new Mesh(true, MAX_VERTICES, 0, VertexAttribute.Position(),
+				new VertexAttribute(Usage.TextureCoordinates, 2, "a_texCoord"));
 	}
 
 	/**
@@ -417,20 +420,33 @@ public class MeshHelper implements Disposable {
 	private void createShader() {
 		// this shader tells OpenGL where to put things
 		final String vertexShader = "attribute vec4 a_position; \n"
+				+ "attribute vec2 a_texCoord; 					\n"
+
 				+ "uniform mat4 u_worldView;					\n"
+
+				+ "varying vec2 v_texCoord;						\n"
+
 				+ "void main()                  				\n"
 				+ "{                            				\n"
+				+ "   v_texCoord = a_texCoord;					\n"
 				+ "   gl_Position =  u_worldView * a_position;	}";
 
 		// this one tells it what goes in between the points (i.e
 		// color/texture)
-		final String fragmentShader = "#ifdef GL_ES     \n"
-				+ "precision mediump float;    			\n"
-				+ "#endif                      			\n"
-				+ "uniform vec4 u_color;				\n"
-				+ "void main()                 			\n"
-				+ "{                           			\n"
-				+ "  gl_FragColor = u_color;   			}";
+		final String fragmentShader = "#ifdef GL_ES     				\n"
+				+ "precision mediump float;    							\n"
+				+ "#endif                      							\n"
+
+				+ "uniform vec4 u_color;								\n"
+				+ "uniform sampler2D u_texture;							\n"
+
+				+ "varying vec2 v_texCoord;								\n"
+
+				+ "void main()                 							\n"
+				+ "{                           							\n"
+				+ "  vec4 texColor = texture2D(u_texture, v_texCoord);	\n"
+				+ "   texColor.a = texColor.a * (256.0/255.0);\n" //
+				+ "  gl_FragColor = u_color * texColor;					}";
 
 		// make an actual shader from our strings
 		ShaderProgram.pedantic = false;
@@ -492,8 +508,15 @@ public class MeshHelper implements Disposable {
 	 * {@link Camera#combined} (ProjectionMatrix * TransformMatrix).
 	 */
 	private void drawMesh() {
+		fbo.begin();
+		tx.bind();
+		// enable blending, for alpha
+		Gdx.gl.glEnable(GL20.GL_BLEND);
+		 Gdx.gl.glBlendFunc(GL20.GL_ONE_MINUS_SRC_ALPHA, GL20.GL_ONE);
 
 		this.meshShader.begin();
+//		Gdx.gl.glClearColor(0f, 0f, 0f, 0f);
+//		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
 		this.meshShader.setUniformf("u_color", this.r, this.g, this.b, this.a);
 		this.meshShader.setUniformMatrix("u_worldView", this.combinedMatrix);
@@ -501,6 +524,8 @@ public class MeshHelper implements Disposable {
 		this.mesh.render(this.meshShader, this.primitiveType);
 
 		this.meshShader.end();
+		Gdx.gl.glClearColor(1f, 1f, 1f, 1f);
+		fbo.end();
 
 	}
 
@@ -524,6 +549,9 @@ public class MeshHelper implements Disposable {
 		this.primitiveType = GL20.GL_TRIANGLE_STRIP;
 		this.lineVertices[this.vertexIndex++] = x;
 		this.lineVertices[this.vertexIndex++] = y;
+		this.lineVertices[this.vertexIndex++] = 0;
+		this.lineVertices[this.vertexIndex++] = 0;
+		this.lineVertices[this.vertexIndex++] = 1;
 
 		this.lastX = Float.MAX_VALUE;
 		this.lastY = this.lastX;
@@ -560,6 +588,10 @@ public class MeshHelper implements Disposable {
 			float maxNorY = y + this.unprojectedVertex.y;
 			this.lineVertices[this.vertexIndex++] = maxNorY;
 
+			this.lineVertices[this.vertexIndex++] = 0;
+			this.lineVertices[this.vertexIndex++] = 0;
+			this.lineVertices[this.vertexIndex++] = 1;
+
 			float minNorX, minNorY;
 			if (this.vertexIndex < MAX_VERTICES_2) {
 				minNorX = x - this.unprojectedVertex.x;
@@ -567,6 +599,10 @@ public class MeshHelper implements Disposable {
 
 				minNorY = y - this.unprojectedVertex.y;
 				this.lineVertices[this.vertexIndex++] = minNorY;
+
+				this.lineVertices[this.vertexIndex++] = 0;
+				this.lineVertices[this.vertexIndex++] = 1;
+				this.lineVertices[this.vertexIndex++] = 1;
 			} else {
 				minNorX = x;
 				minNorY = y;
@@ -843,6 +879,9 @@ public class MeshHelper implements Disposable {
 			currModifiedPixmap = new PixmapRegion(takeScreenShot(x, y, width,
 					height), x, y);
 			fbo.end();
+
+			showingTexRegion.getTexture().draw(currModifiedPixmap.pixmap,
+					currModifiedPixmap.x, currModifiedPixmap.y);
 		}
 
 		private void debug(PixmapRegion pix) {
