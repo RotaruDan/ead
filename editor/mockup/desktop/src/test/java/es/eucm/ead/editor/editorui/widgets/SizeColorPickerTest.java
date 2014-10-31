@@ -46,18 +46,18 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 
 import es.eucm.ead.editor.control.MockupController.Dpi;
 import es.eucm.ead.editor.editorui.MockupUITest;
-import es.eucm.ead.editor.view.widgets.editionview.composition.draw.BrushColorPicker;
+import es.eucm.ead.editor.view.widgets.editionview.composition.draw.SizeColorPicker;
 import es.eucm.ead.engine.I18N;
 
-public class BrushColorPickerTest extends MockupUITest {
+public class SizeColorPickerTest extends MockupUITest {
 
 	@Override
-	protected Actor builUI(Skin skin, I18N i18n) {
+	protected Actor buildUI(Skin skin, I18N i18n) {
 
 		Container<Actor> container = new Container<Actor>();
 		Table table = new Table(skin);
 
-		table.add(new BrushColorPicker(skin)).top();
+		table.add(new SizeColorPicker(skin)).top();
 
 		container.setActor(table);
 		container.setFillParent(true);
@@ -70,7 +70,7 @@ public class BrushColorPickerTest extends MockupUITest {
 		config.width = 1000;
 		config.height = 600;
 		config.overrideDensity = MathUtils.round(Dpi.HDPI.getMaxDpi());
-		BrushColorPickerTest test = new BrushColorPickerTest();
+		SizeColorPickerTest test = new SizeColorPickerTest();
 		config.title = test.getClass().getSimpleName();
 		new LwjglApplication(test, config);
 	}

@@ -37,9 +37,11 @@
 package es.eucm.ead.editor.view.widgets.iconwithpanel;
 
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 
 import es.eucm.ead.editor.view.widgets.IconButton;
 import es.eucm.ead.editor.view.widgets.PanelOverActor;
+import es.eucm.ead.editor.view.widgets.PanelOverActor.PanelOverActorStyle;
 
 /**
  * An {@link IconButton} with a {@link PanelOverActor} when opened.
@@ -57,4 +59,25 @@ public class IconWithPanelAbove extends IconWithPanel<PanelOverActor> {
 		return new PanelOverActor(skin);
 	}
 
+	/**
+	 * The style for a panel, see {@link PanelOverActor}.
+	 * 
+	 */
+	static public class PanelOverActorStyle {
+
+		/** Optional. */
+		public Drawable background;
+
+		public PanelOverActorStyle() {
+		}
+
+		public PanelOverActorStyle(Drawable background) {
+			this.background = background;
+		}
+
+		public PanelOverActorStyle(PanelOverActorStyle style) {
+			this.background = style.background;
+		}
+	}
+	
 }

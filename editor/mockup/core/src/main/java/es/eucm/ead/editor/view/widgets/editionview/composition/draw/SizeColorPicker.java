@@ -55,13 +55,13 @@ import es.eucm.ead.editor.view.widgets.editionview.composition.SlideColorPicker;
 import es.eucm.ead.editor.view.widgets.iconwithpanel.IconWithPanelAbove;
 import es.eucm.ead.editor.view.widgets.layouts.LinearLayout;
 
-public class BrushColorPicker extends IconWithPanelAbove {
+public class SizeColorPicker extends IconWithPanelAbove {
 
 	private static final ClickListener colorClicked = new ClickListener() {
 
 		public void clicked(InputEvent event, float x, float y) {
 			Actor listenerActor = event.getListenerActor();
-			BrushColorPicker colorPicker = ((BrushColorPicker) listenerActor
+			SizeColorPicker colorPicker = ((SizeColorPicker) listenerActor
 					.getUserObject());
 			colorPicker.currentColor = null;
 			colorPicker.newColor = false;
@@ -83,7 +83,7 @@ public class BrushColorPicker extends IconWithPanelAbove {
 	private Image currentColor;
 	private IconButton referenceChild;
 
-	public BrushColorPicker(Skin skin) {
+	public SizeColorPicker(Skin skin) {
 		super("colorpicker80x80", skin);
 		this.skin = skin;
 		this.reference = reference == null ? this : reference;
