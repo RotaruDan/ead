@@ -36,12 +36,10 @@
  */
 package es.eucm.ead.editor.view.widgets;
 
-import static com.badlogic.gdx.scenes.scene2d.actions.Actions.fadeOut;
-
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.Action;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -50,7 +48,6 @@ import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Cell;
 import com.badlogic.gdx.scenes.scene2d.ui.Container;
-import com.badlogic.gdx.scenes.scene2d.ui.List.ListStyle;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
@@ -61,7 +58,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pools;
 
-import es.eucm.ead.editor.view.widgets.iconwithpanel.IconWithScalePanel;
+import es.eucm.ead.editor.view.widgets.PanelOverActor.PanelOverActorStyle;
 
 /**
  * A drop down allows a user to choose one of a number of values from a list.
@@ -84,6 +81,7 @@ public class DropDown extends Container<Actor> implements Disableable {
 	private boolean disabled;
 	private Actor selection;
 	private boolean changeIcon;
+	private float prefWidth, prefHeight;
 
 	public DropDown(Skin skin) {
 		this(skin, skin.get(DropDownStyle.class), true);
@@ -105,8 +103,7 @@ public class DropDown extends Container<Actor> implements Disableable {
 		setStyle(style);
 		setBackground(style.background);
 		this.changeIcon = changeIcon;
-		scroll = new ListScroll(skin);
-		scroll.setBackground(style.listBackgroundDown);
+		scroll = new ListScroll(skin, style.panelOverActorStyle);
 
 		addListener(clickListener = new ClickListener() {
 			public boolean touchDown(InputEvent event, float x, float y,
@@ -123,26 +120,18 @@ public class DropDown extends Container<Actor> implements Disableable {
 
 	@Override
 	public float getPrefWidth() {
-		Actor sel = scroll.first.getActor();
-		if (sel == null) {
-			sel = selection;
+		if (getActor() != null) {
+			prefWidth = super.getPrefWidth();
 		}
-		if (sel != null) {
-			return sel.getWidth();
-		}
-		return super.getPrefWidth();
+		return prefWidth;
 	}
 
 	@Override
 	public float getPrefHeight() {
-		Actor sel = scroll.first.getActor();
-		if (sel == null) {
-			sel = selection;
+		if (getActor() != null) {
+			prefHeight = super.getPrefHeight();
 		}
-		if (sel != null) {
-			return sel.getHeight();
-		}
-		return super.getPrefHeight();
+		return prefHeight;
 	}
 
 	public void setStyle(DropDownStyle style) {
@@ -206,12 +195,6 @@ public class DropDown extends Container<Actor> implements Disableable {
 		Drawable background;
 		if (disabled && style.backgroundDisabled != null) {
 			background = style.backgroundDisabled;
-		} else if (scroll.hasParent()) {
-			if (scroll.getBackground() == style.listBackgroundUp) {
-				background = style.backgroundOpenUp;
-			} else {
-				background = style.backgroundOpenDown;
-			}
 		} else if (clickListener.isOver() && style.backgroundOver != null) {
 			background = style.backgroundOver;
 		} else {
@@ -241,6 +224,8 @@ public class DropDown extends Container<Actor> implements Disableable {
 		}
 		selection = item;
 		setActor(item);
+		scroll.setReferenceActor(selection);
+		scroll.setReferenceChild(selection);
 		invalidateHierarchy();
 	}
 
@@ -268,22 +253,10 @@ public class DropDown extends Container<Actor> implements Disableable {
 		return scroll;
 	}
 
-	private class ListScroll extends HiddenPanel {
+	private class ListScroll extends PanelOverActor {
 
 		private Cell<Actor> first;
-		private final Runnable showChildren = new Runnable() {
 
-			@Override
-			public void run() {
-
-				for (Cell cell : getCells()) {
-					Actor actor = cell.getActor();
-					if (actor != null) {
-						actor.addAction(Actions.fadeIn(.2f, Interpolation.fade));
-					}
-				}
-			}
-		};
 		private final Runnable addSelection = new Runnable() {
 
 			@Override
@@ -303,11 +276,11 @@ public class DropDown extends Container<Actor> implements Disableable {
 			}
 		};
 
-		public ListScroll(Skin skin) {
-			super(skin);
-			setTransform(true);
+		public ListScroll(Skin skin, PanelOverActorStyle panelOverActorStyle) {
+			super(skin, panelOverActorStyle);
 			defaults().uniform();
-
+			setHideChild(false);
+			setUpdatePositionOnChildrenChanged(false);
 			addListener(new InputListener() {
 				public boolean touchDown(InputEvent event, float x, float y,
 						int pointer, int button) {
@@ -332,93 +305,50 @@ public class DropDown extends Container<Actor> implements Disableable {
 			});
 		}
 
-		public void show(Stage stage) {
-			selection.localToStageCoordinates(tmpCoords.set(0f, 0f));
-			int selectionX = MathUtils.round(tmpCoords.x);
-			int selectionY = MathUtils.round(tmpCoords.y);
+		@Override
+		public void pack() {
 			first.setActor(selection);
+			super.pack();
+		}
 
-			Drawable bg = getBackground();
-			if (bg == null) {
-				bg = style.listBackgroundDown;
-			}
-			float iconHeight = DropDown.this.getPrefHeight()
-					- DropDown.this.getPadTop() + bg.getTopHeight();
-			float prefWidth = getPrefWidth();
-			DropDown.this.localToStageCoordinates(tmpCoords.set(
-					(DropDown.this.getWidth() - prefWidth) * .5f, iconHeight));
+		@Override
+		public void positionPanel() {
+			selection.localToStageCoordinates(tmpCoords.set(0f, 0f));
+			super.positionPanel();
+			selection.setPosition(tmpCoords.x, tmpCoords.y);
+			first.setActor(null);
+		}
 
-			float height = getPrefHeight();
-
-			float heightBelow = tmpCoords.y;
-			float heightAbove = stage.getCamera().viewportHeight - tmpCoords.y
-					- iconHeight;
-			boolean below = true;
-			if (height > heightBelow) {
-				if (heightAbove > heightBelow) {
-					below = false;
-					height = Math.min(height, heightAbove);
-				} else {
-					height = heightBelow;
-				}
-			}
-
-			if (below) {
-				setY(MathUtils.round(tmpCoords.y - height));
-				setBackground(style.listBackgroundDown);
-				setOriginY(height);
-			} else {
-				setY(MathUtils.round(tmpCoords.y + DropDown.this.getHeight()));
-				setBackground(style.listBackgroundUp);
-				setOriginY(0);
-			}
-			setX(MathUtils.round(tmpCoords.x));
-			setWidth(MathUtils.round(prefWidth));
-			setHeight(MathUtils.round(height));
-			validate();
-
-			if (getX() > stage.getCamera().viewportWidth * .5f) {
-				setOriginX(getWidth());
-			} else {
-				setOriginX(0);
-			}
-
-			clearActions();
-			setScale(0f);
-			getColor().a = 1f;
-
-			super.show(stage, Actions.sequence(IconWithScalePanel.showAction(
-					FADE, FADE * 2f, showChildren), Actions.run(addSelection),
-					Actions.touchable(Touchable.enabled)));
-			selection.setPosition(selectionX, selectionY);
+		@Override
+		public void show(Stage stage) {
+			super.show(stage);
 			stage.addActor(selection);
-			for (Cell<Actor> cell : getCells()) {
-				Actor actor = cell.getActor();
-				if (actor != null) {
-					actor.getColor().a = 0f;
-				}
-			}
+		}
+
+		@Override
+		protected Action getShowAction() {
+			return Actions.sequence(super.getShowAction(),
+					Actions.run(addSelection));
 		}
 
 		@Override
 		public void hide() {
 			if (selection == null || getActions().size > 0) {
 				clearActions();
-				setTouchable(Touchable.disabled);
 				if (selection == null) {
 					selection = first.getActor();
 				}
-				selection.setTouchable(Touchable.disabled);
 				selection.localToStageCoordinates(tmpCoords.set(0f, 0f));
 				int selectionX = MathUtils.round(tmpCoords.x);
 				int selectionY = MathUtils.round(tmpCoords.y);
 				selection.setPosition(selectionX, selectionY);
 				getStage().addActor(selection);
-				hide(Actions.sequence(fadeOut(FADE, Interpolation.fade),
+				hide(Actions.sequence(getHideAction(),
 						Actions.run(setSelection)));
 			} else {
-				hide(fadeOut(FADE, Interpolation.fade));
+				hide(getHideAction());
 			}
+
 		}
 	}
 
@@ -431,8 +361,7 @@ public class DropDown extends Container<Actor> implements Disableable {
 		/** Optional. */
 		public Drawable background;
 
-		public Drawable listBackgroundUp, listBackgroundDown,
-				backgroundOpenDown, backgroundOpenUp;
+		public PanelOverActorStyle panelOverActorStyle;
 
 		/** Optional. */
 		public Drawable backgroundOver, backgroundDisabled;
@@ -440,21 +369,17 @@ public class DropDown extends Container<Actor> implements Disableable {
 		public DropDownStyle() {
 		}
 
-		public DropDownStyle(Drawable background, Drawable listBackgroundUp,
-				Drawable listBackgroundDown, ListStyle listStyle) {
+		public DropDownStyle(Drawable background,
+				PanelOverActorStyle panelOverActorStyle) {
 			this.background = background;
-			this.listBackgroundUp = listBackgroundUp;
-			this.listBackgroundDown = listBackgroundDown;
+			this.panelOverActorStyle = panelOverActorStyle;
 		}
 
 		public DropDownStyle(DropDownStyle style) {
 			this.background = style.background;
 			this.backgroundOver = style.backgroundOver;
-			this.backgroundOpenUp = style.backgroundOpenUp;
-			this.backgroundOpenDown = style.backgroundOpenDown;
+			this.panelOverActorStyle = style.panelOverActorStyle;
 			this.backgroundDisabled = style.backgroundDisabled;
-			this.listBackgroundUp = style.listBackgroundUp;
-			this.listBackgroundDown = style.listBackgroundDown;
 		}
 	}
 

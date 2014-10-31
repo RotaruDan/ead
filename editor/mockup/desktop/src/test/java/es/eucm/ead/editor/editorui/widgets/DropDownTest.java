@@ -61,17 +61,18 @@ public class DropDownTest extends MockupUITest {
 	@Override
 	protected Actor buildUI(Skin skin, I18N i18n) {
 
-		Container container = new Container();
+		Container<Actor> container = new Container<Actor>().top();
 		EditorGameAssets gameAssets = controller.getEditorGameAssets();
 
 		// Prepare some images
 		gameAssets.setLoadingPath("dropDown", true);
 
 		Table table = new Table(skin);
+		table.pad(20f);
 
 		DropDown dropDown = new DropDown(skin);
-		dropDown.getList().pad(10f, 50f, 90f, 140f);
-		dropDown.pad(10f, 50f, 90f, 140f);
+		dropDown.getList().pad(20, 40, 60, 80);
+		dropDown.pad(20, 40, 60, 80);
 		dropDown.setItems(new Label("123", skin), new Label("456", skin),
 				new Label("789", skin));
 
@@ -94,8 +95,10 @@ public class DropDownTest extends MockupUITest {
 					}, true);
 			images.add(image);
 		}
-		DropDown dropDown2 = new DropDown(skin);
+		DropDown dropDown2 = new DropDown(skin, false);
 		dropDown2.setItems(images);
+		dropDown2.getList().pad(80, 60, 40, 20);
+		dropDown2.pad(80, 60, 40, 20);
 
 		table.add("Drop Down  ");
 		table.add("  Select Box");

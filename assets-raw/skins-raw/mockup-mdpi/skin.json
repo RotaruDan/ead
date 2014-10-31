@@ -236,6 +236,11 @@
 			knob: scrubber_picker
 		}
 	},
+	es.eucm.ead.editor.view.widgets.PanelOverActor$PanelOverActorStyle: {
+		default: { 
+			background: panel
+		}
+	},
 	es.eucm.ead.editor.view.widgets.IconButton$IconButtonStyle: {
 		default: { 
 			up: button_up,
@@ -338,36 +343,23 @@
 	},
 	es.eucm.ead.editor.view.widgets.DropDown$DropDownStyle: {
 		default: {
-			listBackgroundUp: panel,
-			listBackgroundDown: panel
+			panelOverActorStyle: default
 		},
 		white: {
 			background: panel, 
-			backgroundOpenUp: dropdown_to_up, 
-			backgroundOpenDown: dropdown_to_down, 
-			listBackgroundUp: dropdown_to_down,
-			listBackgroundDown: dropdown_to_up
+			panelOverActorStyle: default
 		},
 		white_center: {
 			background: dropdown_center, 
-			backgroundOpenUp: dropdown_center_to_up, 
-			backgroundOpenDown: dropdown_center_to_down, 
-			listBackgroundUp: dropdown_to_down,
-			listBackgroundDown: dropdown_to_up
+			panelOverActorStyle: default
 		},
 		white_right: {
 			background: dropdown_right, 
-			backgroundOpenUp: dropdown_right_to_up,
-			backgroundOpenDown: dropdown_right_to_down, 
-			listBackgroundUp: dropdown_to_down,
-			listBackgroundDown: dropdown_to_up
+			panelOverActorStyle: default
 		},
 		white_left: {
 			background: dropdown_left, 
-			backgroundOpenUp: dropdown_left_to_up, 
-			backgroundOpenDown: dropdown_left_to_down, 
-			listBackgroundUp: dropdown_to_down,
-			listBackgroundDown: dropdown_to_up
+			panelOverActorStyle: default
 		}
 		
 	},
@@ -411,5 +403,5 @@
 		fadeY: {
 			topBackground: scroll_fadeY
 		}
-	},
+	}
 }
