@@ -36,7 +36,6 @@
  */
 package es.eucm.ead.editor.view.widgets.iconwithpanel;
 
-import com.badlogic.gdx.scenes.scene2d.Action;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
@@ -44,8 +43,6 @@ import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 
 import es.eucm.ead.editor.view.widgets.HiddenPanel;
 import es.eucm.ead.editor.view.widgets.IconButton;
-import es.eucm.ead.editor.view.widgets.PositionedHiddenPanel;
-import es.eucm.ead.editor.view.widgets.PositionedHiddenPanel.Position;
 
 /**
  * An {@link IconButton} with a {@link HiddenPanel} as attribute, when clicked
@@ -53,97 +50,52 @@ import es.eucm.ead.editor.view.widgets.PositionedHiddenPanel.Position;
  * when clicked again. The panel is drawn in {@link Stage} coordinates.
  * 
  */
-public abstract class IconWithPanel extends IconButton {
-
-	protected static final float IN_DURATION = .3F;
-	protected static final float OUT_DURATION = .25F;
+public abstract class IconWithPanel<T extends HiddenPanel> extends IconButton {
 
 	private static final ChangeListener showOrHide = new ChangeListener() {
 
 		public void changed(ChangeEvent event,
 				com.badlogic.gdx.scenes.scene2d.Actor actor) {
-			IconWithPanel icon = (IconWithPanel) event.getListenerActor();
+			IconWithPanel<?> icon = (IconWithPanel<?>) event.getListenerActor();
 			if (!icon.panel.hasParent()) {
 				icon.showPanel();
 			}
 		};
 	};
 
-	protected PositionedHiddenPanel panel;
+	protected T panel;
 
-	public IconWithPanel(String icon, float separation, Skin skin,
-			Position position) {
-		this(icon, separation, skin, position, -1, "default");
+	public IconWithPanel(String icon, Skin skin) {
+		this(icon, skin, -1);
 	}
 
-	public IconWithPanel(String icon, float separation, Skin skin,
-			Position position, int paneCol) {
-		this(icon, separation, skin, position, paneCol, "default");
+	public IconWithPanel(String icon, Skin skin, int paneCol) {
+		this(icon, skin, paneCol, "default");
 	}
 
-	public IconWithPanel(String icon, float separation, Skin skin,
-			Position position, String styleName) {
-		this(icon, separation, skin, position, -1, styleName);
-	}
-
-	public IconWithPanel(String icon, float separation, Skin skin,
-			Position position, int paneCol, String styleName) {
+	public IconWithPanel(String icon, Skin skin, int paneCol, String styleName) {
 		super(icon, 0f, skin, styleName);
-		panel.setPosition(position);
-		panel.setSpace(separation);
 		panel.setColumns(paneCol);
 	}
 
 	@Override
 	protected void init(Drawable icon, float padding, Skin skin) {
 		super.init(icon, padding, skin);
-		panel = createPanel(skin, -1);
-		panel.setReference(this);
+		panel = createPanel(skin);
 		addListener(showOrHide);
 	}
 
-	protected PositionedHiddenPanel createPanel(Skin skin, int columns) {
-		return new Panel(skin, columns);
-	}
-
-	/**
-	 * Invoked when the panel is going to be displayed, this method should
-	 * return the {@link Action} used to display the {@link #panel}.
-	 */
-	protected abstract Action getShowAction();
-
-	/**
-	 * Invoked when the panel is going to be hidden, this method should return
-	 * the {@link Action} used to hide the {@link #panel}.
-	 */
-	protected abstract Action getHideAction();
+	protected abstract T createPanel(Skin skin);
 
 	public void showPanel() {
-		panel.show(getShowAction());
+		panel.show(getStage());
 	}
 
 	public void hidePanel() {
-		panel.hide(getHideAction());
+		panel.hide();
 	}
 
-	public PositionedHiddenPanel getPanel() {
+	public HiddenPanel getPanel() {
 		return panel;
-	}
-
-	protected class Panel extends PositionedHiddenPanel {
-
-		public Panel(Skin skin) {
-			this(skin, -1);
-
-		}
-
-		public Panel(Skin skin, int columns) {
-			super(skin);
-		}
-
-		@Override
-		public void hide() {
-			hidePanel();
-		}
 	}
 }

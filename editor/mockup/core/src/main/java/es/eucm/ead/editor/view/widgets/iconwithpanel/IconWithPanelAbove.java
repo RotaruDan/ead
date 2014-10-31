@@ -36,52 +36,25 @@
  */
 package es.eucm.ead.editor.view.widgets.iconwithpanel;
 
-import static com.badlogic.gdx.scenes.scene2d.actions.Actions.fadeIn;
-import static com.badlogic.gdx.scenes.scene2d.actions.Actions.fadeOut;
-
-import com.badlogic.gdx.math.Interpolation;
-import com.badlogic.gdx.scenes.scene2d.Action;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 
-import es.eucm.ead.editor.view.widgets.PositionedHiddenPanel.Position;
+import es.eucm.ead.editor.view.widgets.IconButton;
+import es.eucm.ead.editor.view.widgets.PanelOverActor;
 
 /**
- * A {@link IconWithPositionedPanel} that has a Fade in/out animation.
+ * An {@link IconButton} with a {@link PanelOverActor} when opened.
+ * 
  */
-public class IconWithFadePanel extends IconWithPositionedPanel {
+public class IconWithPanelAbove extends IconWithPanel<PanelOverActor> {
 
-	public IconWithFadePanel(String icon, float separation, Skin skin) {
-		this(icon, separation, skin, Position.RIGHT);
-
-	}
-
-	public IconWithFadePanel(String icon, float separation, Skin skin,
-			Position position) {
-		super(icon, separation, skin, position);
-
-	}
-
-	public IconWithFadePanel(String icon, float separation, Skin skin,
-			Position position, String styleName) {
-		super(icon, separation, skin, position, styleName);
-
+	public IconWithPanelAbove(String icon, Skin skin) {
+		super(icon, skin);
+		panel.setReferenceActor(this);
 	}
 
 	@Override
-	protected void init(Drawable icon, float padding, Skin skin) {
-		super.init(icon, padding, skin);
-		panel.setBackground("panel");
+	protected PanelOverActor createPanel(Skin skin) {
+		return new PanelOverActor(skin);
 	}
 
-	@Override
-	protected Action getShowAction() {
-		panel.getColor().a = 0f;
-		return fadeIn(IN_DURATION, Interpolation.fade);
-	}
-
-	@Override
-	protected Action getHideAction() {
-		return fadeOut(OUT_DURATION, Interpolation.fade);
-	}
 }

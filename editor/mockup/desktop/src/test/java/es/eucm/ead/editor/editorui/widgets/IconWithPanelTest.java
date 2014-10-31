@@ -46,7 +46,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import es.eucm.ead.editor.editorui.MockupUITest;
 import es.eucm.ead.editor.view.widgets.PositionedHiddenPanel.Position;
 import es.eucm.ead.editor.view.widgets.iconwithpanel.IconWithFadePanel;
-import es.eucm.ead.editor.view.widgets.iconwithpanel.IconWithPanel;
+import es.eucm.ead.editor.view.widgets.iconwithpanel.IconWithPositionedPanel;
 import es.eucm.ead.editor.view.widgets.iconwithpanel.IconWithLateralPanel;
 import es.eucm.ead.engine.I18N;
 
@@ -58,16 +58,16 @@ public class IconWithPanelTest extends MockupUITest {
 		Container container = new Container();
 		Table table = new Table(skin);
 
-		IconWithPanel fade = new IconWithFadePanel("conversation80x80", 5f,
-				skin);
+		IconWithPositionedPanel fade = new IconWithFadePanel(
+				"conversation80x80", 5f, skin);
 		fade.getPanel().add(new Image(skin.getDrawable("conversation80x80")));
 
-		IconWithPanel fadeBottom = new IconWithFadePanel("conversation80x80",
-				5f, skin, Position.BOTTOM);
+		IconWithPositionedPanel fadeBottom = new IconWithFadePanel(
+				"conversation80x80", 5f, skin, Position.BOTTOM);
 		fadeBottom.getPanel().add(
 				new Image(skin.getDrawable("conversation80x80")));
 
-		IconWithPanel scaleRight = new IconWithLateralPanel(
+		IconWithPositionedPanel scaleRight = new IconWithLateralPanel(
 				"conversation80x80", 0f, skin);
 		scaleRight.getPanel().add(
 				new Image(skin.getDrawable("conversation80x80")));
@@ -78,8 +78,8 @@ public class IconWithPanelTest extends MockupUITest {
 		scaleRight.getPanel().add(
 				new Image(skin.getDrawable("conversation80x80")));
 
-		IconWithPanel scaleLeft = new IconWithLateralPanel("conversation80x80",
-				0f, skin);
+		IconWithPositionedPanel scaleLeft = new IconWithLateralPanel(
+				"conversation80x80", 0f, skin);
 		scaleLeft.getPanel().add(
 				new Image(skin.getDrawable("conversation80x80")));
 		scaleLeft.getPanel().add(

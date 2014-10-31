@@ -48,9 +48,9 @@ public class IconWithLateralPanel extends BaseIconWithScalePanel {
 	}
 
 	@Override
-	protected PositionedHiddenPanel createPanel(Skin skin, int colPane) {
+	protected PositionedHiddenPanel createPanel(Skin skin) {
 
-		return new Panel(skin, colPane) {
+		return new Panel(skin) {
 
 			private float prefWidth, prefHeight;
 

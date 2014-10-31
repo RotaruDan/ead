@@ -45,12 +45,13 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.Array;
 
 import es.eucm.ead.editor.view.widgets.PositionedHiddenPanel.Position;
+import es.eucm.ead.editor.view.widgets.ScalePanel;
 
 /**
- * A {@link IconWithPanel} that has a scale in/out animation and a FadeIn for
- * each children when showing.
+ * A {@link IconWithPositionedPanel} that has a scale in/out animation and a
+ * FadeIn for each children when showing.
  */
-public abstract class BaseIconWithScalePanel extends IconWithPanel {
+public abstract class BaseIconWithScalePanel extends IconWithPositionedPanel {
 
 	private final Runnable showCells = new Runnable() {
 
@@ -91,24 +92,12 @@ public abstract class BaseIconWithScalePanel extends IconWithPanel {
 				actor.getColor().a = 0f;
 			}
 		}
-		return showAction(xDuration, yDuration, showCells);
+		return ScalePanel.showAction(xDuration, yDuration, showCells);
 	}
 
 	@Override
 	protected Action getHideAction() {
-		return hideAction();
+		return ScalePanel.hideAction(OUT_DURATION);
 	}
 
-	public static Action showAction(float xDuration, float yDuration,
-			Runnable runnable) {
-		return Actions.parallel(
-				Actions.scaleBy(1f, 0f, xDuration, Interpolation.pow2Out),
-				Actions.scaleBy(0f, 1f, yDuration, Interpolation.pow2Out),
-				Actions.delay(Math.min(xDuration, yDuration),
-						Actions.run(runnable)));
-	}
-
-	public static Action hideAction() {
-		return Actions.scaleTo(0f, 0f, OUT_DURATION, Interpolation.pow2In);
-	}
 }

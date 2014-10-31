@@ -85,8 +85,8 @@ public class IconWithScalePanel extends BaseIconWithScalePanel {
 	}
 
 	@Override
-	protected PositionedHiddenPanel createPanel(Skin skin, int colPane) {
-		return new Panel(skin, colPane) {
+	protected PositionedHiddenPanel createPanel(Skin skin) {
+		return new Panel(skin) {
 			@Override
 			protected void positionPanel(float x, float y) {
 
