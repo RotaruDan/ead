@@ -36,47 +36,39 @@
  */
 package es.eucm.ead.android;
 
-import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-
-import android.content.BroadcastReceiver;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
-
-import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
-import android.widget.Button;
-import com.badlogic.gdx.backends.android.AndroidApplication;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.Tracker;
-
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
 import com.google.android.gms.drive.*;
-import com.google.android.gms.drive.query.Filters;
-import com.google.android.gms.drive.query.Query;
-import com.google.android.gms.drive.query.SearchableField;
 import es.eucm.ead.editor.MokapApplicationListener;
 import es.eucm.ead.editor.platform.MokapPlatform;
 import es.eucm.mokap.R;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
 public class EditorActivity extends BaseActivity {
 
+    /** DRIVE_OPEN Intent action. */
+    private static final String ACTION_DRIVE_OPEN = "com.google.android.apps.drive.DRIVE_OPEN";
+    /** Drive file ID key. */
+    private static final String EXTRA_FILE_ID = "resourceId";
+    /** Drive file ID. */
+    private String mFileId;
+
+    private static Drive mGOOSvc;
+
 	private Map<Integer, ActivityResultListener> listeners;
-
-    private static final String TAG = "MainActivity";
-
-    // Instance variables used for DriveFile and DriveContents to help initiate file conflicts.
-    protected DriveFile groceryListFile;
-    protected DriveContents groceryListContents;
-
-    // Receiver used to update the EditText once conflicts have been resolved.
-    protected BroadcastReceiver broadcastReceiver;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -99,7 +91,7 @@ public class EditorActivity extends BaseActivity {
 	}
 
 	private MokapPlatform handleIntent(Intent intent, MokapPlatform platform) {
-
+        mFileId = null;
 		if (intent != null) {
 			String action = intent.getAction();
 			if (Intent.ACTION_VIEW.equals(action)) {
@@ -108,7 +100,10 @@ public class EditorActivity extends BaseActivity {
 					String path = data.getPath();
 					platform.setApplicationArguments(path);
 				}
-			}
+			} else if(ACTION_DRIVE_OPEN.equals(action)) {
+                // Get the Drive file ID.
+                mFileId = intent.getStringExtra(EXTRA_FILE_ID);
+            }
 		}
 		return platform;
 	}
@@ -121,6 +116,7 @@ public class EditorActivity extends BaseActivity {
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
 		ActivityResultListener listener = this.listeners.get(requestCode);
 		if (listener != null) {
 			listener.result(resultCode, data);
@@ -134,169 +130,73 @@ public class EditorActivity extends BaseActivity {
 	public interface ActivityResultListener {
 		void result(int resultCode, Intent data);
 	}
-    @Override
-    protected void onStart() {
-        super.onStart();
-        LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver,
-                new IntentFilter(ConflictResolver.CONFLICT_RESOLVED));
-    }
 
-    @Override
-    protected void onStop() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver);
-        super.onStop();
-    }
+
+    private static final String TAG = "CreateFileActivity";
 
     @Override
     public void onConnected(Bundle connectionHint) {
         super.onConnected(connectionHint);
-        // Syncing to help devices use the same file.
-        Drive.DriveApi.requestSync(getGoogleApiClient()).setResultCallback(syncCallback);
+        // create new contents resource
+        Drive.DriveApi.newDriveContents(getGoogleApiClient())
+                .setResultCallback(driveContentsCallback);
+
+        mGOOSvc = new Drive(
+                AndroidHttp.newCompatibleTransport(), new GsonFactory(), GoogleAccountCredential
+                .usingOAuth2(ctx, Arrays.asList(DriveScopes.DRIVE_FILE))
+                .setSelectedAccountName(email)
+        ).build();
+        Drive.DriveApi.get
     }
 
-    // Callback when requested sync returns.
-    private ResultCallback<Status> syncCallback = new ResultCallback<Status>() {
-        @Override
-        public void onResult(Status status) {
-            if (!status.isSuccess()) {
-                Log.e(TAG, "Unable to sync.");
-            }
-            Query query = new Query.Builder()
-                    .addFilter(Filters.eq(SearchableField.TITLE, "TEST_TITLE_1"))
-                    .build();
-            Drive.DriveApi.query(getGoogleApiClient(), query).setResultCallback(metadataCallback);
-        }
-    };
-
-    // Callback when search for the grocery list file returns. It sets {@code groceryListFile} if
-    // it exists or initiates the creation of a new file if no file is found.
-    private ResultCallback<DriveApi.MetadataBufferResult> metadataCallback =
-            new ResultCallback<DriveApi.MetadataBufferResult>() {
+    final private ResultCallback<DriveApi.DriveContentsResult> driveContentsCallback = new
+            ResultCallback<DriveApi.DriveContentsResult>() {
                 @Override
-                public void onResult(DriveApi.MetadataBufferResult metadataBufferResult) {
-                    if (!metadataBufferResult.getStatus().isSuccess()) {
-                        showMessage("Problem while retrieving results.");
+                public void onResult(DriveApi.DriveContentsResult result) {
+                    if (!result.getStatus().isSuccess()) {
+                        showMessage("Error while trying to create new file contents");
                         return;
                     }
-                    int results = metadataBufferResult.getMetadataBuffer().getCount();
-                    if (results > 0) {
-                        // If the file exists then use it.
-                        DriveId driveId = metadataBufferResult.getMetadataBuffer().get(0).getDriveId();
-                        groceryListFile = Drive.DriveApi.getFile(getGoogleApiClient(), driveId);
-                        groceryListFile.open(getGoogleApiClient(), DriveFile.MODE_READ_ONLY, null)
-                                .setResultCallback(driveContentsCallback);
-                    } else {
-                        // If the file does not exist then create one.
-                        Drive.DriveApi.newDriveContents(getGoogleApiClient())
-                                .setResultCallback(newContentsCallback);
-                    }
+                    final DriveContents driveContents = result.getDriveContents();
+
+                    // Perform I/O off the UI thread.
+                    new Thread() {
+                        @Override
+                        public void run() {
+                            // write content to DriveContents
+                            OutputStream outputStream = driveContents.getOutputStream();
+                            Writer writer = new OutputStreamWriter(outputStream);
+                            try {
+                                writer.write("Hello World!");
+                                writer.close();
+                            } catch (IOException e) {
+                                Gdx.app.log(TAG, e.getMessage());
+                            }
+
+                            MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
+                                    .setTitle("New file")
+                                    .setMimeType("text/plain")
+                                    .setStarred(true).build();
+
+                            // create a file on root folder
+                            Drive.DriveApi.getRootFolder(getGoogleApiClient())
+                                    .createFile(getGoogleApiClient(), changeSet, driveContents)
+                                    .setResultCallback(fileCallback);
+                        }
+                    }.start();
                 }
             };
 
-    // Callback when {@code groceryListContents} is reopened for writing.
-    private ResultCallback<DriveApi.DriveContentsResult> updateDriveContensCallback =
-            new ResultCallback<DriveApi.DriveContentsResult>() {
+    final private ResultCallback<DriveFolder.DriveFileResult> fileCallback = new
+            ResultCallback<DriveFolder.DriveFileResult>() {
                 @Override
-                public void onResult(DriveApi.DriveContentsResult driveContentsResult) {
-                    if (!driveContentsResult.getStatus().isSuccess()) {
-                        Log.e(TAG, "Unable to updated grocery list.");
+                public void onResult(DriveFolder.DriveFileResult result) {
+                    if (!result.getStatus().isSuccess()) {
+                        showMessage("Error while trying to create the file");
                         return;
                     }
-                    DriveContents driveContents = driveContentsResult.getDriveContents();
-                    OutputStream outputStream = driveContents.getOutputStream();
-                    Writer writer = new OutputStreamWriter(outputStream);
-                    try {
-                        writer.write("TEST_WRITE_1");
-                        writer.close();
-                    } catch (IOException e) {
-                        Log.e(TAG, e.getMessage());
-                    }
-
-                    // ExecutionOptions define the conflict strategy to be used.
-                    ExecutionOptions executionOptions = new ExecutionOptions.Builder()
-                            .setNotifyOnCompletion(true)
-                            .setConflictStrategy(ExecutionOptions.CONFLICT_STRATEGY_KEEP_REMOTE)
-                            .build();
-                    driveContents.commit(getGoogleApiClient(), null, executionOptions)
-                            .setResultCallback(fileWrittenCallback);
-
-                    Log.d(TAG, "Saving file.");
+                    showMessage("Created a file with content: " + result.getDriveFile().getDriveId());
                 }
             };
 
-    // Callback when file has been written locally.
-    private ResultCallback<Status> fileWrittenCallback = new ResultCallback<Status>() {
-        @Override
-        public void onResult(Status status) {
-            if (!status.isSuccess()) {
-                Log.e(TAG, "Unable to write grocery list.");
-            }
-            Log.d(TAG, "File saved locally.");
-            groceryListFile.open(getGoogleApiClient(), DriveFile.MODE_READ_ONLY, null)
-                    .setResultCallback(driveContentsCallback);
-        }
-    };
-
-    // Callback when {@code DriveApi.DriveContentsResult} for the creation of a new
-    // {@code DriveContents} has been returned.
-    private ResultCallback<DriveApi.DriveContentsResult> newContentsCallback =
-            new ResultCallback<DriveApi.DriveContentsResult>() {
-                @Override
-                public void onResult(DriveApi.DriveContentsResult driveContentsResult) {
-                    if (!driveContentsResult.getStatus().isSuccess()) {
-                        Log.e(TAG, "Unable to create grocery list file contents.");
-                        return;
-                    }
-                    Log.d(TAG, "grocery_list new file contents returned.");
-                    groceryListContents = driveContentsResult.getDriveContents();
-
-                    MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
-                            .setTitle("TITLE_TEST_1")
-                            .setMimeType("text/plain")
-                            .build();
-                    // create a file on root folder
-                    Drive.DriveApi.getRootFolder(getGoogleApiClient())
-                            .createFile(getGoogleApiClient(), changeSet, groceryListContents)
-                            .setResultCallback(groceryListFileCallback);
-                }
-            };
-
-    // Callback when request to create grocery list file is returned.
-    private ResultCallback<DriveFolder.DriveFileResult> groceryListFileCallback =
-            new ResultCallback<DriveFolder.DriveFileResult>() {
-                @Override
-                public void onResult(DriveFolder.DriveFileResult driveFileResult) {
-                    if (!driveFileResult.getStatus().isSuccess()) {
-                        Log.e(TAG, "Unable to create grocery list file.");
-                        return;
-                    }
-                    Log.d(TAG, "Grocery list file returned.");
-                    groceryListFile = driveFileResult.getDriveFile();
-                    // Open {@code groceryListFile} in read only mode to update
-                    // {@code groceryListContents} to current base state.
-                    groceryListFile.open(getGoogleApiClient(), DriveFile.MODE_READ_ONLY, null)
-                            .setResultCallback(driveContentsCallback);
-                }
-            };
-
-    // Callback when request to open {@code groceryListFile} in read only mode is returned.
-    private ResultCallback<DriveApi.DriveContentsResult> driveContentsCallback =
-            new ResultCallback<DriveApi.DriveContentsResult>() {
-                @Override
-                public void onResult(DriveApi.DriveContentsResult driveContentsResult) {
-                    if (!driveContentsResult.getStatus().isSuccess()) {
-                        Log.e(TAG, "Unable to load grocery list data.");
-
-                        // Try to open {@code groceryListFile} again.
-                        groceryListFile.open(getGoogleApiClient(), DriveFile.MODE_READ_ONLY, null)
-                                .setResultCallback(driveContentsCallback);
-                        return;
-                    }
-                    groceryListContents = driveContentsResult.getDriveContents();
-                    InputStream inputStream = groceryListContents.getInputStream();
-                    String groceryListStr = ConflictUtil.getStringFromInputStream(inputStream);
-
-
-                }
-            };
 }
