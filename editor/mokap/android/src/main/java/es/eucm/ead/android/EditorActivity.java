@@ -36,6 +36,7 @@
  */
 package es.eucm.ead.android;
 
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -43,93 +44,100 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.Tracker;
+import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.drive.*;
+import com.google.android.gms.drive.query.Filters;
+import com.google.android.gms.drive.query.Query;
+import com.google.android.gms.drive.query.SearchableField;
 import es.eucm.ead.editor.MokapApplicationListener;
 import es.eucm.ead.editor.platform.MokapPlatform;
 import es.eucm.mokap.R;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import java.io.*;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 public class EditorActivity extends BaseActivity {
 
-    /** DRIVE_OPEN Intent action. */
+    /**
+     * DRIVE_OPEN Intent action.
+     */
     private static final String ACTION_DRIVE_OPEN = "com.google.android.apps.drive.DRIVE_OPEN";
-    /** Drive file ID key. */
+    /**
+     * Drive file ID key.
+     */
     private static final String EXTRA_FILE_ID = "resourceId";
-    /** Drive file ID. */
+    /**
+     * Drive file ID.
+     */
     private String mFileId;
 
     private static Drive mGOOSvc;
 
-	private Map<Integer, ActivityResultListener> listeners;
+    private Map<Integer, ActivityResultListener> listeners;
 
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
-		AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
-		config.useAccelerometer = false;
-		config.useImmersiveMode = false;
-		config.hideStatusBar = true;
-		config.useWakelock = true;
-		config.useCompass = false;
+        AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
+        config.useAccelerometer = false;
+        config.useImmersiveMode = false;
+        config.hideStatusBar = true;
+        config.useWakelock = true;
+        config.useCompass = false;
 
-		this.listeners = new HashMap<Integer, ActivityResultListener>();
-		GoogleAnalytics analytics = GoogleAnalytics.getInstance(this);
-		Tracker tracker = analytics.newTracker(R.xml.tracker);
-		analytics.reportActivityStart(this);
-		initialize(
-				new MokapApplicationListener(handleIntent(getIntent(),
-						new AndroidPlatform(getContext(), tracker))), config);
-	}
+        this.listeners = new HashMap<Integer, ActivityResultListener>();
+        GoogleAnalytics analytics = GoogleAnalytics.getInstance(this);
+        Tracker tracker = analytics.newTracker(R.xml.tracker);
+        analytics.reportActivityStart(this);
+        initialize(
+                new MokapApplicationListener(handleIntent(getIntent(),
+                        new AndroidPlatform(getContext(), tracker))), config);
+    }
 
-	private MokapPlatform handleIntent(Intent intent, MokapPlatform platform) {
+    private MokapPlatform handleIntent(Intent intent, MokapPlatform platform) {
         mFileId = null;
-		if (intent != null) {
-			String action = intent.getAction();
-			if (Intent.ACTION_VIEW.equals(action)) {
-				Uri data = intent.getData();
-				if (data != null) {
-					String path = data.getPath();
-					platform.setApplicationArguments(path);
-				}
-			} else if(ACTION_DRIVE_OPEN.equals(action)) {
+        if (intent != null) {
+            String action = intent.getAction();
+            if (Intent.ACTION_VIEW.equals(action)) {
+                Uri data = intent.getData();
+                if (data != null) {
+                    String path = data.getPath();
+                    platform.setApplicationArguments(path);
+                }
+            } else if (ACTION_DRIVE_OPEN.equals(action)) {
                 // Get the Drive file ID.
                 mFileId = intent.getStringExtra(EXTRA_FILE_ID);
             }
-		}
-		return platform;
-	}
+        }
+        return platform;
+    }
 
-	public void startActivityForResult(Intent intent, int requestCode,
-			ActivityResultListener l) {
-		this.listeners.put(requestCode, l);
-		super.startActivityForResult(intent, requestCode);
-	}
+    public void startActivityForResult(Intent intent, int requestCode,
+                                       ActivityResultListener l) {
+        this.listeners.put(requestCode, l);
+        super.startActivityForResult(intent, requestCode);
+    }
 
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-		ActivityResultListener listener = this.listeners.get(requestCode);
-		if (listener != null) {
-			listener.result(resultCode, data);
-		}
-	}
+        ActivityResultListener listener = this.listeners.get(requestCode);
+        if (listener != null) {
+            listener.result(resultCode, data);
+        }
+    }
 
-	public void post(Runnable run) {
-		super.handler.post(run);
-	}
+    public void post(Runnable run) {
+        super.handler.post(run);
+    }
 
-	public interface ActivityResultListener {
-		void result(int resultCode, Intent data);
-	}
+    public interface ActivityResultListener {
+        void result(int resultCode, Intent data);
+    }
 
 
     private static final String TAG = "CreateFileActivity";
@@ -138,15 +146,145 @@ public class EditorActivity extends BaseActivity {
     public void onConnected(Bundle connectionHint) {
         super.onConnected(connectionHint);
         // create new contents resource
-        Drive.DriveApi.newDriveContents(getGoogleApiClient())
-                .setResultCallback(driveContentsCallback);
+//        Drive.DriveApi.newDriveContents(getGoogleApiClient())
+//                .setResultCallback(driveContentsCallback);
 
-        mGOOSvc = new Drive(
-                AndroidHttp.newCompatibleTransport(), new GsonFactory(), GoogleAccountCredential
-                .usingOAuth2(ctx, Arrays.asList(DriveScopes.DRIVE_FILE))
-                .setSelectedAccountName(email)
-        ).build();
-        Drive.DriveApi.get
+//        Query query = new Query.Builder()
+//                .addFilter(Filters.eq(SearchableField.TITLE, "test_elem"))
+//                .build();
+//        Drive.DriveApi.query(getGoogleApiClient(), query).setResultCallback(metadataCallback);
+
+        MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
+                .setTitle("New folder").build();
+        Drive.DriveApi.getRootFolder(getGoogleApiClient()).createFolder(
+                getGoogleApiClient(), changeSet).setResultCallback(folderCreatedCallback);
+
+        Drive.DriveApi.fetchDriveId(getGoogleApiClient(), "0BzxXsuMMSYHPT2hkeHlxcHA3NHM")
+                .setResultCallback(folderIdCallback);
+        // No funciona porque La app de Drive lanza un "error interno"
+        if (mFileId != null) {
+            Drive.DriveApi.fetchDriveId(getGoogleApiClient(), mFileId)
+                    .setResultCallback(idCallback);
+        }
+
+    }
+
+    private ResultCallback<DriveFolder.DriveFolderResult> folderCreatedCallback = new
+            ResultCallback<DriveFolder.DriveFolderResult>() {
+                @Override
+                public void onResult(DriveFolder.DriveFolderResult result) {
+                    if (!result.getStatus().isSuccess()) {
+                        showMessage("Error while trying to create the folder");
+                        return;
+                    }
+                    showMessage("Created a folder: " + result.getDriveFolder().getDriveId());
+//                    DriveFolder folder = Drive.DriveApi.getFolder(getGoogleApiClient(), result.getDriveFolder().getDriveId());
+//                    folder.listChildren(getGoogleApiClient()).setResultCallback(childrenRetrievedCallback);
+
+                    Query query = new Query.Builder().addFilter(Filters.eq(SearchableField.TITLE, "New folder"))
+                    .build();
+                    Drive.DriveApi.query(getGoogleApiClient(), query).setResultCallback(metadataCallback);
+                }
+            };
+
+    final private ResultCallback<DriveApi.MetadataBufferResult> metadataCallback = new
+            ResultCallback<DriveApi.MetadataBufferResult>() {
+                @Override
+                public void onResult(DriveApi.MetadataBufferResult result) {
+                    if (!result.getStatus().isSuccess()) {
+                        showMessage("Problem while retrieving results");
+                        return;
+                    }
+                    MetadataBuffer metadataBuffer = result.getMetadataBuffer();
+                    for (Metadata metadata : metadataBuffer) {
+                        showMessage("file found::" + metadata.getTitle());
+                        DriveId driveId = metadata.getDriveId();
+                        if (driveId != null) {
+                            Drive.DriveApi.fetchDriveId(getGoogleApiClient(), mFileId)
+                                    .setResultCallback(folderIdCallback);
+                        }
+                    }
+                }
+            };
+
+    final private ResultCallback<DriveApi.DriveIdResult> idCallback = new ResultCallback<DriveApi.DriveIdResult>() {
+        @Override
+        public void onResult(DriveApi.DriveIdResult result) {
+            new RetrieveDriveFileContentsAsyncTask(
+                    EditorActivity.this).execute(result.getDriveId());
+        }
+    };
+
+    final private ResultCallback<DriveApi.DriveIdResult> folderIdCallback = new ResultCallback<DriveApi.DriveIdResult>() {
+        @Override
+        public void onResult(DriveApi.DriveIdResult result) {
+            if(!result.getStatus().isInterrupted()){
+                Gdx.app.log(TAG, "failed to get id");
+                return;
+            }
+            DriveFolder folder = Drive.DriveApi.getFolder(getGoogleApiClient(), result.getDriveId());
+            folder.listChildren(getGoogleApiClient()).setResultCallback(childrenRetrievedCallback);
+        }
+    };
+
+    final private ResultCallback<DriveApi.MetadataBufferResult> childrenRetrievedCallback = new
+            ResultCallback<DriveApi.MetadataBufferResult>() {
+                @Override
+                public void onResult(DriveApi.MetadataBufferResult result) {
+                    if (!result.getStatus().isSuccess()) {
+                        showMessage("Problem while retrieving files");
+                        return;
+                    }
+                    for (Metadata metadata : result.getMetadataBuffer()) {
+                        showMessage("Folder child " + metadata.getTitle());
+
+                    }
+                }
+            };
+
+    final private class RetrieveDriveFileContentsAsyncTask
+            extends ApiClientAsyncTask<DriveId, Boolean, String> {
+
+        public RetrieveDriveFileContentsAsyncTask(Context context) {
+            super(context);
+        }
+
+        @Override
+        protected String doInBackgroundConnected(DriveId... params) {
+            String contents = null;
+            DriveFile file = Drive.DriveApi.getFile(getGoogleApiClient(), params[0]);
+            DriveApi.DriveContentsResult driveContentsResult =
+                    file.open(getGoogleApiClient(), DriveFile.MODE_READ_ONLY, null).await();
+            if (!driveContentsResult.getStatus().isSuccess()) {
+                return null;
+            }
+            DriveContents driveContents = driveContentsResult.getDriveContents();
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(driveContents.getInputStream()));
+            StringBuilder builder = new StringBuilder();
+            String line;
+            try {
+                while ((line = reader.readLine()) != null) {
+                    builder.append(line);
+                }
+                contents = builder.toString();
+            } catch (IOException e) {
+                Gdx.app.log(TAG, "IOException while reading from the stream", e);
+            }
+
+            driveContents.discard(getGoogleApiClient());
+            return contents;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            if (result == null) {
+                showMessage("Error while reading from the file");
+                return;
+            }
+            showMessage("File contents: " + result);
+        }
     }
 
     final private ResultCallback<DriveApi.DriveContentsResult> driveContentsCallback = new

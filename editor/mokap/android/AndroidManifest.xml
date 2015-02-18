@@ -34,9 +34,7 @@
             <intent-filter>
                 <action android:name="com.google.android.apps.drive.DRIVE_OPEN" />
                 <data android:mimeType="application/vnd.google-apps.drive-sdk.469968790478-jkkslgojfvdljepmkph9gkbahc76dphv" />
-                <data android:mimeType="image/png" />
-                <data android:mimeType="image/jpeg" />
-                <data android:mimeType="image/jpg" />
+                <data android:mimeType="*/*"/>
             </intent-filter>
 
             <intent-filter>
