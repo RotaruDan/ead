@@ -64,17 +64,42 @@
             <version>19.0.0</version>
             <type>apklib</type>
         </dependency>
+        <!--
         <dependency>
             <groupId>com.google.android</groupId>
             <artifactId>support-v4</artifactId>
             <version>r7</version>
         </dependency>
+        -->
         <dependency>
             <groupId>com.badlogicgames.gdx</groupId>
             <artifactId>gdx-freetype-platform</artifactId>
             <version>${gdx.version}</version>
             <classifier>natives-armeabi-v7a</classifier>
             <scope>provided</scope>
+        </dependency>
+
+        <!-- Dependencies for the Google Drive RESTful Java API -->
+        <dependency>
+            <groupId>com.google.apis</groupId>
+            <artifactId>google-api-services-drive</artifactId>
+            <version>v2-rev161-1.19.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client-android</artifactId>
+            <version>1.19.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.android</groupId>
+                    <artifactId>google-play-services</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.google.http-client</groupId>
+            <artifactId>google-http-client-gson</artifactId>
+            <version>1.19.0</version>
         </dependency>
     </dependencies>
     <build>
