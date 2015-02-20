@@ -48,9 +48,9 @@ import java.util.Arrays;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.drive.Drive;
-import com.google.android.gms.drive.DriveApi.DriveContentsResult;
+//import com.google.android.gms.drive.DriveApi.DriveContentsResult;
 import com.google.android.gms.drive.DriveApi.MetadataBufferResult;
-import com.google.android.gms.drive.DriveContents;
+//import com.google.android.gms.drive.DriveContents;
 import com.google.android.gms.drive.DriveFile;
 import com.google.android.gms.drive.DriveFolder;
 import com.google.android.gms.drive.DriveFolder.DriveFileResult;
@@ -209,34 +209,34 @@ public final class GooDrive {
 		MetadataChangeSet meta;
 		if (buf != null) { // create file
 			if (mime != null) { // file must have mime
-				DriveContentsResult r1 = Drive.DriveApi.newDriveContents(mGAC)
-						.await();
-				if (r1 == null || !r1.getStatus().isSuccess())
-					return null; // -------->>>
-
-				meta = new MetadataChangeSet.Builder().setTitle(titl)
-						.setMimeType(mime).build();
-				DriveFileResult r2 = pFldr.createFile(mGAC, meta,
-						r1.getDriveContents()).await();
-				DriveFile dFil = r2 != null && r2.getStatus().isSuccess() ? r2
-						.getDriveFile() : null;
-				if (dFil == null)
-					return null; // ---------->>>
-
-				r1 = dFil.open(mGAC, DriveFile.MODE_WRITE_ONLY, null).await();
-				if ((r1 != null) && (r1.getStatus().isSuccess()))
-					try {
-						Status stts = bytes2Cont(r1.getDriveContents(), buf)
-								.commit(mGAC, meta).await();
-						if ((stts != null) && stts.isSuccess()) {
-							MetadataResult r3 = dFil.getMetadata(mGAC).await();
-							if (r3 != null && r3.getStatus().isSuccess()) {
-								dId = r3.getMetadata().getDriveId();
-							}
-						}
-					} catch (Exception e) {
-						UT.le(e);
-					}
+//				DriveContentsResult r1 = Drive.DriveApi.newDriveContents(mGAC)
+//						.await();
+//				if (r1 == null || !r1.getStatus().isSuccess())
+//					return null; // -------->>>
+//
+//				meta = new MetadataChangeSet.Builder().setTitle(titl)
+//						.setMimeType(mime).build();
+//				DriveFileResult r2 = pFldr.createFile(mGAC, meta,
+//						r1.getDriveContents()).await();
+//				DriveFile dFil = r2 != null && r2.getStatus().isSuccess() ? r2
+//						.getDriveFile() : null;
+//				if (dFil == null)
+//					return null; // ---------->>>
+//
+//				r1 = dFil.open(mGAC, DriveFile.MODE_WRITE_ONLY, null).await();
+//				if ((r1 != null) && (r1.getStatus().isSuccess()))
+//					try {
+//						Status stts = bytes2Cont(r1.getDriveContents(), buf)
+//								.commit(mGAC, meta).await();
+//						if ((stts != null) && stts.isSuccess()) {
+//							MetadataResult r3 = dFil.getMetadata(mGAC).await();
+//							if (r3 != null && r3.getStatus().isSuccess()) {
+//								dId = r3.getMetadata().getDriveId();
+//							}
+//						}
+//					} catch (Exception e) {
+//						UT.le(e);
+//					}
 			}
 
 		} else {
@@ -266,14 +266,14 @@ public final class GooDrive {
 		byte[] buf = null;
 		if (isConnected()) {
 			DriveFile df = Drive.DriveApi.getFile(mGAC, dId);
-			DriveContentsResult rslt = df.open(mGAC, DriveFile.MODE_READ_ONLY,
-					null).await();
-			if ((rslt != null) && rslt.getStatus().isSuccess()) {
-				DriveContents cont = rslt.getDriveContents();
-				buf = cont2Bytes(cont); // UT.is2Bytes(cont.getInputStream());
-				cont.discard(mGAC); // or cont.commit(); they are equiv if
-									// READONLY
-			}
+//			DriveContentsResult rslt = df.open(mGAC, DriveFile.MODE_READ_ONLY,
+//					null).await();
+//			if ((rslt != null) && rslt.getStatus().isSuccess()) {
+//				DriveContents cont = rslt.getDriveContents();
+//				buf = cont2Bytes(cont); // UT.is2Bytes(cont.getInputStream());
+//				cont.discard(mGAC); // or cont.commit(); they are equiv if
+//									// READONLY
+//			}
 		}
 		return buf;
 	}
@@ -314,16 +314,16 @@ public final class GooDrive {
 
 		} else {
 			DriveFile dFile = Drive.DriveApi.getFile(mGAC, dId);
-			MetadataResult r1 = dFile.updateMetadata(mGAC, meta).await();
-			if ((r1 != null) && r1.getStatus().isSuccess() && buf != null) {
-				DriveContentsResult r2 = dFile.open(mGAC,
-						DriveFile.MODE_WRITE_ONLY, null).await();
-				if (r2.getStatus().isSuccess()) {
-					Status r3 = bytes2Cont(r2.getDriveContents(), buf).commit(
-							mGAC, meta).await();
-					bOK = (r3 != null && r3.isSuccess());
-				}
-			}
+//			MetadataResult r1 = dFile.updateMetadata(mGAC, meta).await();
+//			if ((r1 != null) && r1.getStatus().isSuccess() && buf != null) {
+//				DriveContentsResult r2 = dFile.open(mGAC,
+//						DriveFile.MODE_WRITE_ONLY, null).await();
+//				if (r2.getStatus().isSuccess()) {
+//					Status r3 = bytes2Cont(r2.getDriveContents(), buf).commit(
+//							mGAC, meta).await();
+//					bOK = (r3 != null && r3.isSuccess());
+//				}
+//			}
 		}
 		return bOK;
 	}
@@ -396,44 +396,44 @@ public final class GooDrive {
 		return create(prnt, titl, null, null);
 	}
 
-	private static DriveContents bytes2Cont(DriveContents driveContents,
-			byte[] buf) {
-		OutputStream os = driveContents.getOutputStream();
-		try {
-			os.write(buf);
-		} catch (IOException e) {
-			UT.le(e);
-		} finally {
-			try {
-				os.close();
-			} catch (Exception e) {
-				UT.le(e);
-			}
-		}
-		return driveContents;
-	}
+//	private static DriveContents bytes2Cont(DriveContents driveContents,
+//			byte[] buf) {
+//		OutputStream os = driveContents.getOutputStream();
+//		try {
+//			os.write(buf);
+//		} catch (IOException e) {
+//			UT.le(e);
+//		} finally {
+//			try {
+//				os.close();
+//			} catch (Exception e) {
+//				UT.le(e);
+//			}
+//		}
+//		return driveContents;
+//	}
 
-	private static byte[] cont2Bytes(DriveContents contents) {
-		BufferedReader reader = new BufferedReader(new InputStreamReader(
-				contents.getInputStream()));
-		StringBuilder builder = new StringBuilder();
-		String line;
-		try {
-			while ((line = reader.readLine()) != null) {
-				builder.append(line);
-			}
-			return builder.toString().getBytes();
-		} catch (Exception e) {
-			UT.le(e);
-		} finally {
-			try {
-				reader.close();
-			} catch (Exception e) {
-				UT.le(e);
-			}
-		}
-		return null;
-	}
+//	private static byte[] cont2Bytes(DriveContents contents) {
+//		BufferedReader reader = new BufferedReader(new InputStreamReader(
+//				contents.getInputStream()));
+//		StringBuilder builder = new StringBuilder();
+//		String line;
+//		try {
+//			while ((line = reader.readLine()) != null) {
+//				builder.append(line);
+//			}
+//			return builder.toString().getBytes();
+//		} catch (Exception e) {
+//			UT.le(e);
+//		} finally {
+//			try {
+//				reader.close();
+//			} catch (Exception e) {
+//				UT.le(e);
+//			}
+//		}
+//		return null;
+//	}
 
 	// ////////////////////////////////////////////////////////////////////////////////////////////
 	// (S)CRU(D) implementation of Google APIs Java Client (REST)
