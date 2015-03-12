@@ -41,6 +41,7 @@ import com.badlogic.gdx.Input.TextInputListener;
 import com.badlogic.gdx.backends.lwjgl.LwjglFrame;
 import com.badlogic.gdx.files.FileHandle;
 import es.eucm.ead.editor.control.Controller;
+import es.eucm.ead.editor.platform.ApplicationArguments;
 import es.eucm.ead.editor.platform.MokapPlatform;
 import es.eucm.ead.editor.platform.MokapPlatform.ImageCapturedListener.Result;
 import es.eucm.ead.engine.I18N;
@@ -198,11 +199,12 @@ public class MokapDesktopPlatform extends MokapPlatform {
 		return imageUtils;
 	}
 
-	public void setApplicationArguments(Object... applicationArguments) {
-		super.setApplicationArguments(applicationArguments);
-		if (applicationArguments != null && applicationArguments.length > 0
-				&& "debug".equals(applicationArguments[0])) {
-			setDebug(true);
+	public void setApplicationArgument(String key, Object value) {
+		super.setApplicationArgument(key, value);
+		if (key != null && ApplicationArguments.DEBUG_FLAG.equals(key)) {
+			if (value != null) {
+				setDebug((Boolean) value);
+			}
 		}
 	}
 

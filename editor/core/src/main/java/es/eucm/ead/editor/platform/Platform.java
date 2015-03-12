@@ -40,6 +40,7 @@ import com.badlogic.gdx.Input.TextInputListener;
 import com.badlogic.gdx.Net.HttpRequest;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.ObjectMap;
 import es.eucm.ead.editor.control.Controller;
 import es.eucm.ead.editor.control.Tracker;
 import es.eucm.ead.editor.utils.ProjectUtils;
@@ -219,17 +220,10 @@ public interface Platform {
 
 	/**
 	 * 
-	 * @return the arguments of the application. For instance in Android
-	 *         returns:
-	 *         <dl>
-	 *         <dt><strong>Arguments</strong></dt>
-	 *         <dd><strong>args[0]</strong> <em>{@link String}</em> absolute
-	 *         path to a file with {@link ProjectUtils#ZIP_EXTENSION} that
-	 *         should be imported to the {@link #getDefaultProjectsFolder()}, or
-	 *         null if the application was initiated normally.</dd>
-	 *         </dl>
+	 * @return an Object contained by a given key. To see the possible keys see
+	 *         {@link es.eucm.ead.editor.platform.ApplicationArguments}.
 	 */
-	Object[] getApplicationArguments();
+	Object getApplicationArgument(String key);
 
 	/**
 	 * @return if the application is in debug mode

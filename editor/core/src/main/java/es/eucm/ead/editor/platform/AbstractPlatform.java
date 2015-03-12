@@ -42,6 +42,7 @@ import com.badlogic.gdx.Net.HttpMethods;
 import com.badlogic.gdx.Net.HttpRequest;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.net.HttpStatus;
+import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.Pools;
 import com.badlogic.gdx.utils.StreamUtils;
 import es.eucm.ead.editor.control.Controller;
@@ -62,7 +63,7 @@ public abstract class AbstractPlatform implements Platform {
 	private static final String ABSTRACT_PLATFORM_TAG = "AbstractPlatform";
 	private static final int TIMEOUT = 25000;
 
-	private Object[] applicationArguments;
+	private ObjectMap<String, Object> applicationArguments;
 	private Batch batch;
 
 	protected AbstractPlatform() {
@@ -74,6 +75,7 @@ public abstract class AbstractPlatform implements Platform {
 						e);
 			}
 		});
+		this.applicationArguments = new ObjectMap<String, Object>(10);
 	}
 
 	@Override
@@ -233,13 +235,13 @@ public abstract class AbstractPlatform implements Platform {
 		}
 	}
 
-	public void setApplicationArguments(Object... applicationArguments) {
-		this.applicationArguments = applicationArguments;
+	public void setApplicationArgument(String key, Object value) {
+		this.applicationArguments.put(key, value);
 	}
 
 	@Override
-	public Object[] getApplicationArguments() {
-		return applicationArguments;
+	public Object getApplicationArgument(String key) {
+		return applicationArguments.get(key);
 	}
 
 	@Override

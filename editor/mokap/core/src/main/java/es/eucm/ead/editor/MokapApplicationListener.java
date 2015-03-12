@@ -52,6 +52,7 @@ import es.eucm.ead.editor.control.actions.editor.OpenLastProject;
 import es.eucm.ead.editor.control.actions.editor.Save;
 import es.eucm.ead.editor.model.Model;
 import es.eucm.ead.editor.model.events.LoadEvent;
+import es.eucm.ead.editor.platform.ApplicationArguments;
 import es.eucm.ead.editor.platform.MokapPlatform;
 import es.eucm.ead.editor.platform.Platform;
 import es.eucm.ead.editor.utils.ProjectUtils;
@@ -82,7 +83,6 @@ public class MokapApplicationListener extends EditorApplicationListener {
 		super.initialize();
 		controller.getModel().addLoadListener(
 				new UpdateSaveTaskAfterLoadUnload());
-		controller.action(OpenApplication.class);
 		stage.setActionsRequestRendering(true);
 		if (platform.isDebug()) {
 			performance = new Label("", controller.getApplicationAssets()
@@ -92,6 +92,15 @@ public class MokapApplicationListener extends EditorApplicationListener {
 			performance.setAlignment(Align.bottomLeft);
 			stage.addActor(performance);
 		}
+		controller.action(OpenApplication.class);
+	}
+
+	public void openApplication() {
+		controller.action(OpenApplication.class);
+	}
+
+	public Controller getController() {
+		return controller;
 	}
 
 	@Override
@@ -150,14 +159,13 @@ public class MokapApplicationListener extends EditorApplicationListener {
 
 	private void handleImport() {
 		MokapPlatform platform = (MokapPlatform) controller.getPlatform();
-		Object[] appArgs = platform.getApplicationArguments();
-		String importProjectPath = (appArgs == null || appArgs.length != 1) ? null
-				: (String) appArgs[0];
-		ViewBuilder currentView = controller.getViews().getCurrentView();
-		Class elseView = currentView == null ? HomeView.class : currentView
-				.getClass();
+		String importProjectPath = (String) platform
+				.getApplicationArgument(ApplicationArguments.IMPORT_PROJECT_PATH);
 		if (importProjectPath != null && !importProjectPath.isEmpty()
 				&& importProjectPath.endsWith(ProjectUtils.ZIP_EXTENSION)) {
+			ViewBuilder currentView = controller.getViews().getCurrentView();
+			Class elseView = currentView == null ? HomeView.class : currentView
+					.getClass();
 			controller.action(ImportProject.class, elseView,
 					new OpenApplication.ShowErrorToastCallback(controller));
 		}

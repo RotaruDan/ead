@@ -39,6 +39,7 @@ package es.eucm.ead.editor.control.actions.editor;
 import es.eucm.ead.editor.control.Controller;
 import es.eucm.ead.editor.control.actions.EditorAction;
 import es.eucm.ead.editor.control.actions.editor.OpenLastProject.ErrorCallback;
+import es.eucm.ead.editor.platform.ApplicationArguments;
 import es.eucm.ead.editor.platform.MokapPlatform;
 import es.eucm.ead.editor.platform.Platform;
 import es.eucm.ead.editor.utils.ProjectUtils;
@@ -47,7 +48,7 @@ import es.eucm.ead.editor.view.builders.home.HomeView;
 /**
  * <p>
  * Tries to open the last opened game or
- * {@link Platform#getApplicationArguments()}[0] if any.
+ * {@link Platform#getApplicationArgument(String)} if any.
  * </p>
  * <dl>
  * <dt><strong>Arguments</strong></dt>
@@ -64,9 +65,8 @@ public class OpenApplication extends EditorAction {
 	public void perform(Object... args) {
 
 		MokapPlatform platform = (MokapPlatform) controller.getPlatform();
-		Object[] appArgs = platform.getApplicationArguments();
-		String importProjectPath = (appArgs == null || appArgs.length != 1) ? null
-				: (String) appArgs[0];
+		String importProjectPath = (String) platform
+				.getApplicationArgument(ApplicationArguments.IMPORT_PROJECT_PATH);
 
 		Class elseView = HomeView.class;
 		if (importProjectPath != null && !importProjectPath.isEmpty()

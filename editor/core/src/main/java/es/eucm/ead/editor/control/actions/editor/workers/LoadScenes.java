@@ -40,9 +40,12 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.utils.Array;
 import es.eucm.ead.editor.control.actions.EditorAction;
 import es.eucm.ead.editor.control.actions.editor.ExecuteWorker;
+import es.eucm.ead.editor.control.actions.model.SetSelection;
+import es.eucm.ead.editor.control.actions.model.scene.SetEditedScene;
 import es.eucm.ead.editor.control.commands.ResourceCommand.AddResourceCommand;
 import es.eucm.ead.editor.control.workers.Worker;
 import es.eucm.ead.editor.control.workers.Worker.WorkerListener;
+import es.eucm.ead.editor.platform.ApplicationArguments;
 import es.eucm.ead.schema.entities.ModelEntity;
 import es.eucm.ead.schemax.ModelStructure;
 import es.eucm.ead.schemax.entities.ResourceCategory;
@@ -70,6 +73,10 @@ public class LoadScenes extends EditorAction implements WorkerListener {
 				controller.getModel(), id, scene, ResourceCategory.SCENE);
 		addScene.setCreateResourceModified(false);
 		controller.getCommands().doCommand(addScene);
+		Boolean select = (Boolean) results[2];
+		if (select) {
+			controller.action(SetEditedScene.class, id, scene);
+		}
 	}
 
 	@Override
@@ -91,6 +98,8 @@ public class LoadScenes extends EditorAction implements WorkerListener {
 
 		private Array<String> scenes;
 
+		private boolean select = false;
+
 		public LoadScenesWorker() {
 			super(true, true);
 		}
@@ -100,11 +109,20 @@ public class LoadScenes extends EditorAction implements WorkerListener {
 			scenes = new Array<String>();
 			FileHandle scenesFolder = controller.getEditorGameAssets().resolve(
 					ModelStructure.SCENES_PATH);
+			Object editSceneObj = controller.getPlatform()
+					.getApplicationArgument(ApplicationArguments.EDIT_SCENE);
 			for (FileHandle child : scenesFolder.list()) {
 				if ("json".equals(child.extension())) {
-					scenes.add(child.path().substring(
-							controller.getEditorGameAssets().getLoadingPath()
-									.length()));
+					String path = child.path();
+					scenes.add(path.substring(controller.getEditorGameAssets()
+							.getLoadingPath().length()));
+					if (editSceneObj != null) {
+						if (path.endsWith((String) editSceneObj)) {
+							String editScene = scenes.pop();
+							scenes.insert(0, editScene);
+							select = true;
+						}
+					}
 				}
 			}
 		}
@@ -117,7 +135,8 @@ public class LoadScenes extends EditorAction implements WorkerListener {
 			String sceneId = scenes.removeIndex(0);
 			ModelEntity scene = controller.getEditorGameAssets().fromJsonPath(
 					ModelEntity.class, sceneId);
-			result(sceneId, scene);
+			result(sceneId, scene, select);
+			select = false;
 			return scenes.size == 0;
 		}
 	}

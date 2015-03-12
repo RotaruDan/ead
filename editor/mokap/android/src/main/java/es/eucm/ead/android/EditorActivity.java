@@ -44,6 +44,7 @@ import android.net.Uri;
 import android.os.Bundle;
 
 import android.util.Log;
+import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
@@ -51,30 +52,56 @@ import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.Tracker;
 
 import es.eucm.ead.editor.MokapApplicationListener;
+import es.eucm.ead.editor.control.Selection;
+import es.eucm.ead.editor.control.actions.model.AddSceneElement;
+import es.eucm.ead.editor.model.Model;
+import es.eucm.ead.editor.platform.ApplicationArguments;
 import es.eucm.ead.editor.platform.MokapPlatform;
 import es.eucm.mokap.R;
 
 public class EditorActivity extends AndroidApplication {
 
 	private final String SAVED_INSTANCE_STATE_CONSUMED_INTENT = "SAVED_INSTANCE_STATE_CONSUMED_INTENT";
+	private final String SAVED_INSTANCE_STATE_FROM_ACTIVITY = "SAVED_INSTANCE_STATE_FROM_ACTIVITY";
+	private final String SAVED_INSTANCE_STATE_EDIT_SCENE = "SAVED_INSTANCE_STATE_EDIT_SCENE";
 	private Map<Integer, ActivityResultListener> listeners;
-	private boolean consumedIntent = false;
+	private boolean consumedIntent = false, fromActivity = false;
 	private AndroidPlatform platform;
+	private MokapApplicationListener mokapApplicationListener;
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
+		Log.d(tag, "onSaveInstanceState");
 		super.onSaveInstanceState(outState);
 		outState.putBoolean(SAVED_INSTANCE_STATE_CONSUMED_INTENT,
 				consumedIntent);
+		outState.putBoolean(SAVED_INSTANCE_STATE_FROM_ACTIVITY, fromActivity);
+		Model model = mokapApplicationListener.getController().getModel();
+		Object sceneSelection = model.getSelection().getSingle(Selection.SCENE);
+		if (sceneSelection != null) {
+			String editSceneId = model.getIdFor(sceneSelection);
+			if (editSceneId != null) {
+				outState.putString(SAVED_INSTANCE_STATE_EDIT_SCENE, editSceneId);
+			}
+		}
 	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+		Log.d(tag, "onCreate");
 		super.onCreate(savedInstanceState);
 
+		GoogleAnalytics analytics = GoogleAnalytics.getInstance(this);
+		Tracker tracker = analytics.newTracker(R.xml.tracker);
+		platform = new AndroidPlatform(getContext(), tracker);
 		if (savedInstanceState != null) {
 			consumedIntent = savedInstanceState
 					.getBoolean(SAVED_INSTANCE_STATE_CONSUMED_INTENT);
+			fromActivity = savedInstanceState
+					.getBoolean(SAVED_INSTANCE_STATE_FROM_ACTIVITY);
+			platform.setApplicationArgument(ApplicationArguments.EDIT_SCENE,
+					savedInstanceState
+							.getString(SAVED_INSTANCE_STATE_EDIT_SCENE));
 		}
 
 		AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
@@ -85,12 +112,10 @@ public class EditorActivity extends AndroidApplication {
 		config.useCompass = false;
 
 		this.listeners = new HashMap<Integer, ActivityResultListener>();
-		GoogleAnalytics analytics = GoogleAnalytics.getInstance(this);
-		Tracker tracker = analytics.newTracker(R.xml.tracker);
-		analytics.reportActivityStart(this);
-		platform = new AndroidPlatform(getContext(), tracker);
 		handleIntent();
-		initialize(new MokapApplicationListener(platform), config);
+		mokapApplicationListener = new MokapApplicationListener(platform);
+		initialize(mokapApplicationListener, config);
+		analytics.reportActivityStart(this);
 	}
 
 	private void handleIntent() {
@@ -106,7 +131,8 @@ public class EditorActivity extends AndroidApplication {
 					Uri data = intent.getData();
 					if (data != null) {
 						String path = data.getPath();
-						platform.setApplicationArguments(path);
+						platform.setApplicationArgument(
+								ApplicationArguments.IMPORT_PROJECT_PATH, path);
 						consumedIntent = true;
 					}
 				} else if (Intent.ACTION_MAIN.equals(action)) {
@@ -118,6 +144,7 @@ public class EditorActivity extends AndroidApplication {
 
 	@Override
 	protected void onNewIntent(Intent intent) {
+		Log.d(tag, "onNewIntent");
 		super.onNewIntent(intent);
 		setIntent(intent);
 		consumedIntent = false;
@@ -125,15 +152,26 @@ public class EditorActivity extends AndroidApplication {
 
 	public void startActivityForResult(Intent intent, int requestCode,
 			ActivityResultListener l) {
+		Log.d(tag, "startActivityForResult, request code: " + requestCode);
+		fromActivity = true;
 		this.listeners.put(requestCode, l);
 		super.startActivityForResult(intent, requestCode);
 	}
 
+	String tag = "Mokap test";
+
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		Log.d(tag, "On activity result, request code: " + requestCode
+				+ ", result code: " + resultCode + ", data: " + data);
 		ActivityResultListener listener = this.listeners.get(requestCode);
 		if (listener != null) {
+			Log.d(tag, "listener is NOT null");
 			listener.result(resultCode, data);
+		}
+		if (fromActivity) {
+			fromActivity = false;
+			// mokapApplicationListener.openApplication();
 		}
 	}
 
@@ -147,6 +185,7 @@ public class EditorActivity extends AndroidApplication {
 
 	@Override
 	protected void onResume() {
+		Log.d(tag, "onResume");
 		handleIntent();
 		super.onResume();
 		// This is necessary because we are using non-continuous rendering and

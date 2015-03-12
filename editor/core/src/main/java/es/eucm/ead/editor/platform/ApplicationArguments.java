@@ -34,44 +34,25 @@
  *      You should have received a copy of the GNU Lesser General Public License
  *      along with eAdventure.  If not, see <http://www.gnu.org/licenses/>.
  */
-package es.eucm.ead.editor;
+package es.eucm.ead.editor.platform;
 
-import com.badlogic.gdx.Application;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
+public class ApplicationArguments {
 
-import es.eucm.ead.editor.control.Controller;
-import es.eucm.ead.editor.control.Preferences;
-import es.eucm.ead.editor.debugconfig.DesktopDebugConfiguration;
-import es.eucm.ead.editor.platform.AbstractPlatform;
-import es.eucm.ead.editor.platform.ApplicationArguments;
+	/**
+	 * absolute path to a file with
+	 * {@link es.eucm.ead.editor.utils.ProjectUtils#ZIP_EXTENSION} that should
+	 * be imported to the {@link Platform#getDefaultProjectsFolder()}, or null
+	 * if the application was initiated normally.
+	 */
+	public static final String IMPORT_PROJECT_PATH = "import_project_path";
 
-public class MokapDesktop {
+	/**
+	 * A Boolean indicating if the debug should be activated or not in desktop.
+	 */
+	public static final String DEBUG_FLAG = "debug_flag";
 
-	public static void main(String[] args) {
-
-		final DesktopDebugConfiguration config = DesktopDebugConfiguration
-				.build();
-		AbstractPlatform mokapDesktopPlatform = new MokapDesktopPlatform();
-		if (args != null && args.length > 0) {
-			mokapDesktopPlatform.setApplicationArgument(
-					ApplicationArguments.IMPORT_PROJECT_PATH, args[0]);
-		}
-		MokapApplicationListener mokapApplicationListener = new MokapApplicationListener(
-				mokapDesktopPlatform) {
-			@Override
-			protected Controller buildController() {
-				Controller controller = super.buildController();
-				if (config.editorLanguage != null) {
-					controller.getPreferences().putString(
-							Preferences.EDITOR_LANGUAGE, config.editorLanguage);
-					controller.setLanguage(config.editorLanguage);
-				}
-				return controller;
-			}
-		};
-		new LwjglApplication(mokapApplicationListener, config);
-		// not working, create() is called asynchronously...
-		Gdx.app.setLogLevel(Application.LOG_DEBUG);
-	}
+	/**
+	 * The edit scene identifier right before leaving the application.
+	 */
+	public static final String EDIT_SCENE = "edit_scene";
 }
