@@ -39,7 +39,8 @@ package es.eucm.ead.editor.platform;
 public class ApplicationArguments {
 
 	/**
-	 * absolute path to a file with
+     * Value type: (String) <p>
+	 * Absolute path to a file with
 	 * {@link es.eucm.ead.editor.utils.ProjectUtils#ZIP_EXTENSION} that should
 	 * be imported to the {@link Platform#getDefaultProjectsFolder()}, or null
 	 * if the application was initiated normally.
@@ -47,12 +48,31 @@ public class ApplicationArguments {
 	public static final String IMPORT_PROJECT_PATH = "import_project_path";
 
 	/**
-	 * A Boolean indicating if the debug should be activated or not in desktop.
+	 * Value type: (Boolean) <p> A Boolean indicating if the debug should be activated or not in desktop.
 	 */
 	public static final String DEBUG_FLAG = "debug_flag";
 
 	/**
-	 * The edit scene identifier right before leaving the application.
+	 * Value type: (String) <p> The edit scene identifier right before leaving the application.
 	 */
 	public static final String EDIT_SCENE = "edit_scene";
+
+    /**
+     * Value type: (String) <p> If this value isn't null when the {@link es.eucm.ead.editor.platform.ApplicationArguments#EDIT_SCENE} is set,
+     * then a scene element from this path will be added to the scene.
+     */
+    public static final String ADD_SCENE_ELEMENT_PATH = "add_scene_element_path";
+
+    /**
+     * Value type: (String) <p> If this value isn't null when the {@link es.eucm.ead.editor.platform.ApplicationArguments#EDIT_SCENE} is set,
+     * then if {@link es.eucm.ead.editor.platform.ApplicationArguments#RESULT_OK} is true a scene element from will be added to the scene
+     * otherwise the file pointed by this path will be deleted.
+     */
+    public static final String ADD_PICTURE_PATH = "add_picture_path";
+
+    /**
+     * Value type: (Boolean) <p> A Boolean indicating if the action from onActivityResult was successful.
+     */
+    public static final String RESULT_OK = "result_ok";
+
 }

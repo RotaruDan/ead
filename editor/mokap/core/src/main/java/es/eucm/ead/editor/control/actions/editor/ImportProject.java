@@ -43,6 +43,7 @@ import es.eucm.ead.editor.assets.EditorGameAssets;
 import es.eucm.ead.editor.control.LibraryManager;
 import es.eucm.ead.editor.control.actions.EditorAction;
 import es.eucm.ead.editor.control.workers.UnzipFile;
+import es.eucm.ead.editor.platform.ApplicationArguments;
 import es.eucm.ead.editor.platform.MokapPlatform;
 import es.eucm.ead.editor.utils.ProjectUtils;
 import es.eucm.ead.editor.view.builders.ImportView;
@@ -78,7 +79,8 @@ public class ImportProject extends EditorAction {
 		OpenLastProject.ErrorCallback callback = args.length == 2 ? (OpenLastProject.ErrorCallback) args[1]
 				: null;
 		MokapPlatform platform = (MokapPlatform) controller.getPlatform();
-		String importProjectPath = (String) platform.getApplicationArguments()[0];
+		String importProjectPath = (String) platform
+				.getApplicationArgument(ApplicationArguments.IMPORT_PROJECT_PATH);
 		EditorGameAssets assets = controller.getEditorGameAssets();
 		FileHandle inputProjectZip = assets.absolute(importProjectPath);
 		if (!inputProjectZip.exists()) {
@@ -216,6 +218,7 @@ public class ImportProject extends EditorAction {
 	}
 
 	private void clearApplicationArguments(MokapPlatform platform) {
-		platform.setApplicationArguments((Object[]) null);
+		platform.setApplicationArgument(
+				ApplicationArguments.IMPORT_PROJECT_PATH, null);
 	}
 }

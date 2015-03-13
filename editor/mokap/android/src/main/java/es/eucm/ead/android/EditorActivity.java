@@ -43,11 +43,13 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 
+import android.provider.MediaStore;
 import android.util.Log;
 import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
+import com.badlogic.gdx.backends.android.AndroidEventListener;
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.Tracker;
 
@@ -57,6 +59,7 @@ import es.eucm.ead.editor.control.actions.model.AddSceneElement;
 import es.eucm.ead.editor.model.Model;
 import es.eucm.ead.editor.platform.ApplicationArguments;
 import es.eucm.ead.editor.platform.MokapPlatform;
+import es.eucm.ead.schema.entities.ModelEntity;
 import es.eucm.mokap.R;
 
 public class EditorActivity extends AndroidApplication {
@@ -64,8 +67,26 @@ public class EditorActivity extends AndroidApplication {
 	private final String SAVED_INSTANCE_STATE_CONSUMED_INTENT = "SAVED_INSTANCE_STATE_CONSUMED_INTENT";
 	private final String SAVED_INSTANCE_STATE_FROM_ACTIVITY = "SAVED_INSTANCE_STATE_FROM_ACTIVITY";
 	private final String SAVED_INSTANCE_STATE_EDIT_SCENE = "SAVED_INSTANCE_STATE_EDIT_SCENE";
+    private final String SAVED_INSTANCE_STATE_PATH_COLUMN = "SAVED_INSTANCE_STATE_PATH_COLUMN";
+    private final String SAVED_INSTANCE_STATE_PICTURE_PATH = "SAVED_INSTANCE_STATE_PICTURE_PATH";
+
 	private Map<Integer, ActivityResultListener> listeners;
-	private boolean consumedIntent = false, fromActivity = false;
+    /**
+     * True if the intent that has the path to the project that has to be imported has been consumed or not.
+     */
+	private boolean consumedIntent = false;
+    /**
+     * True if we're invoking onCreate after coming from an activity we've launched via #startActivityForResult().
+     */
+    private boolean fromActivity = false;
+    /**
+     * If we have to retrieve a string from a result via a {@link es.eucm.ead.android.SavedInstanceEventListener} we need to know what column we should look for (images or audio).
+     */
+    private String pathColumn;
+    /**
+     * If we've taken a picture and our app has been killed this is the path where the picture has been taken.
+     */
+    private String picturePath;
 	private AndroidPlatform platform;
 	private MokapApplicationListener mokapApplicationListener;
 
@@ -76,6 +97,8 @@ public class EditorActivity extends AndroidApplication {
 		outState.putBoolean(SAVED_INSTANCE_STATE_CONSUMED_INTENT,
 				consumedIntent);
 		outState.putBoolean(SAVED_INSTANCE_STATE_FROM_ACTIVITY, fromActivity);
+        outState.putString(SAVED_INSTANCE_STATE_PATH_COLUMN, pathColumn);
+        outState.putString(SAVED_INSTANCE_STATE_PICTURE_PATH, picturePath);
 		Model model = mokapApplicationListener.getController().getModel();
 		Object sceneSelection = model.getSelection().getSingle(Selection.SCENE);
 		if (sceneSelection != null) {
@@ -99,6 +122,20 @@ public class EditorActivity extends AndroidApplication {
 					.getBoolean(SAVED_INSTANCE_STATE_CONSUMED_INTENT);
 			fromActivity = savedInstanceState
 					.getBoolean(SAVED_INSTANCE_STATE_FROM_ACTIVITY);
+
+            if(fromActivity) {
+                fromActivity = false;
+                pathColumn = savedInstanceState.getString(SAVED_INSTANCE_STATE_PATH_COLUMN);
+                if(pathColumn != null) {
+                    SavedInstanceEventListener listener = new SavedInstanceEventListener(platform);
+                    listener.setPathColumn(pathColumn);
+                    addAndroidEventListener(listener);
+                } else {
+                    picturePath = savedInstanceState.getString(SAVED_INSTANCE_STATE_PICTURE_PATH);
+                    platform.setApplicationArgument(ApplicationArguments.ADD_PICTURE_PATH, picturePath);
+                }
+            }
+
 			platform.setApplicationArgument(ApplicationArguments.EDIT_SCENE,
 					savedInstanceState
 							.getString(SAVED_INSTANCE_STATE_EDIT_SCENE));
@@ -150,11 +187,13 @@ public class EditorActivity extends AndroidApplication {
 		consumedIntent = false;
 	}
 
-	public void startActivityForResult(Intent intent, int requestCode,
-			ActivityResultListener l) {
+	public void startActivityForResult(Intent intent, int requestCode, String pathColumn, String picturePath,
+			ActivityResultListener listener) {
 		Log.d(tag, "startActivityForResult, request code: " + requestCode);
 		fromActivity = true;
-		this.listeners.put(requestCode, l);
+        this.pathColumn = pathColumn;
+        this.picturePath = picturePath;
+		this.listeners.put(requestCode, listener);
 		super.startActivityForResult(intent, requestCode);
 	}
 
@@ -162,16 +201,13 @@ public class EditorActivity extends AndroidApplication {
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		Log.d(tag, "On activity result, request code: " + requestCode
-				+ ", result code: " + resultCode + ", data: " + data);
+        Log.d(tag, "On activity result, request code: " + requestCode
+                + ", result code: " + resultCode + ", data: " + data);
+        super.onActivityResult(requestCode, resultCode, data);
 		ActivityResultListener listener = this.listeners.get(requestCode);
 		if (listener != null) {
 			Log.d(tag, "listener is NOT null");
 			listener.result(resultCode, data);
-		}
-		if (fromActivity) {
-			fromActivity = false;
-			// mokapApplicationListener.openApplication();
 		}
 	}
 

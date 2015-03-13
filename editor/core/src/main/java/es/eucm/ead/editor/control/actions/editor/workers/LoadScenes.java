@@ -40,12 +40,14 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.utils.Array;
 import es.eucm.ead.editor.control.actions.EditorAction;
 import es.eucm.ead.editor.control.actions.editor.ExecuteWorker;
+import es.eucm.ead.editor.control.actions.model.AddSceneElement;
 import es.eucm.ead.editor.control.actions.model.SetSelection;
 import es.eucm.ead.editor.control.actions.model.scene.SetEditedScene;
 import es.eucm.ead.editor.control.commands.ResourceCommand.AddResourceCommand;
 import es.eucm.ead.editor.control.workers.Worker;
 import es.eucm.ead.editor.control.workers.Worker.WorkerListener;
 import es.eucm.ead.editor.platform.ApplicationArguments;
+import es.eucm.ead.editor.platform.Platform;
 import es.eucm.ead.schema.entities.ModelEntity;
 import es.eucm.ead.schemax.ModelStructure;
 import es.eucm.ead.schemax.entities.ResourceCategory;
@@ -75,8 +77,22 @@ public class LoadScenes extends EditorAction implements WorkerListener {
 		controller.getCommands().doCommand(addScene);
 		Boolean select = (Boolean) results[2];
 		if (select) {
+            // We try to recover the saved instance state that we had right before getting killed
 			controller.action(SetEditedScene.class, id, scene);
-		}
+            Platform platform = controller.getPlatform();
+            String elemPath = (String) platform.getApplicationArgument(ApplicationArguments.ADD_SCENE_ELEMENT_PATH);
+            if(elemPath != null) {
+                ModelEntity sceneElement = controller.getTemplates().createSceneElement(elemPath, false);
+                controller.action(AddSceneElement.class, sceneElement);
+            } else {
+                String picturePath = (String) platform.getApplicationArgument(ApplicationArguments.ADD_PICTURE_PATH);
+                if((Boolean) platform.getApplicationArgument(ApplicationArguments.RESULT_OK)){
+
+                } else {
+
+                }
+            }
+        }
 	}
 
 	@Override
@@ -117,6 +133,8 @@ public class LoadScenes extends EditorAction implements WorkerListener {
 					scenes.add(path.substring(controller.getEditorGameAssets()
 							.getLoadingPath().length()));
 					if (editSceneObj != null) {
+                        // This use case occurs when the OS kills our application and we
+                        // must recover the saved instance state right before getting killed
 						if (path.endsWith((String) editSceneObj)) {
 							String editScene = scenes.pop();
 							scenes.insert(0, editScene);

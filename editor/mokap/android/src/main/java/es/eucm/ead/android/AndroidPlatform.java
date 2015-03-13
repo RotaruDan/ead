@@ -151,7 +151,7 @@ public class AndroidPlatform extends MokapPlatform {
 
 		EditorActivity activity = (EditorActivity) Gdx.app;
 		if (intent.resolveActivity(activity.getPackageManager()) != null) {
-			activity.startActivityForResult(intent, PICK_FILE,
+			activity.startActivityForResult(intent, PICK_FILE, pathColumn, null,
 					new FileResultListener(controller, listener, pathColumn,
 							this));
 		} else {
@@ -220,7 +220,7 @@ public class AndroidPlatform extends MokapPlatform {
 				});
 			}
 
-			activity.startActivityForResult(editIntent, EDIT_FILE,
+			activity.startActivityForResult(editIntent, EDIT_FILE, MediaStore.Images.Media.DATA, null,
 					new FileResultListener(controller, listener,
 							MediaStore.Images.Media.DATA, this));
 		} else {
@@ -256,12 +256,13 @@ public class AndroidPlatform extends MokapPlatform {
 		alertDialogBuilder.create().show();
 	}
 
-	private String getStringFromIntent(Context context, Intent data,
+	public String getStringFromIntent(Context context, Intent data,
 			String pathColumn) {
-		try {
+        Cursor cursor = null;
+        try {
 			Uri selectedImage = data.getData();
 			String[] filePathColumn = { pathColumn };
-			Cursor cursor = context.getContentResolver().query(selectedImage,
+			cursor = context.getContentResolver().query(selectedImage,
 					filePathColumn, null, null, null);
 			cursor.moveToFirst();
 			int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
@@ -274,6 +275,9 @@ public class AndroidPlatform extends MokapPlatform {
 			return picturePath;
 		} catch (Exception e) {
 			Gdx.app.error(PLATFORM_TAG, "Path could not be resolved", e);
+            if(cursor != null && !cursor.isClosed()){
+                cursor.close();
+            }
 			return null;
 		}
 
@@ -328,7 +332,7 @@ public class AndroidPlatform extends MokapPlatform {
 				takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
 						Uri.fromFile(photoFile.file()));
 				activity.startActivityForResult(takePictureIntent,
-						CAPTURE_PHOTO, new ActivityResultListener() {
+						CAPTURE_PHOTO, null, photoFile.file().getAbsolutePath(), new ActivityResultListener() {
 
 							@Override
 							public void result(final int resultCode, Intent data) {
