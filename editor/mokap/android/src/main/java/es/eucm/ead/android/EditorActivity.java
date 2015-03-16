@@ -43,23 +43,17 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 
-import android.provider.MediaStore;
 import android.util.Log;
-import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
-import com.badlogic.gdx.backends.android.AndroidEventListener;
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.Tracker;
 
 import es.eucm.ead.editor.MokapApplicationListener;
 import es.eucm.ead.editor.control.Selection;
-import es.eucm.ead.editor.control.actions.model.AddSceneElement;
 import es.eucm.ead.editor.model.Model;
 import es.eucm.ead.editor.platform.ApplicationArguments;
-import es.eucm.ead.editor.platform.MokapPlatform;
-import es.eucm.ead.schema.entities.ModelEntity;
 import es.eucm.mokap.R;
 
 public class EditorActivity extends AndroidApplication {
@@ -89,6 +83,7 @@ public class EditorActivity extends AndroidApplication {
     private String picturePath;
 	private AndroidPlatform platform;
 	private MokapApplicationListener mokapApplicationListener;
+    private SavedInstanceEventListener eventListener;
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
@@ -126,11 +121,10 @@ public class EditorActivity extends AndroidApplication {
             if(fromActivity) {
                 fromActivity = false;
                 pathColumn = savedInstanceState.getString(SAVED_INSTANCE_STATE_PATH_COLUMN);
-                if(pathColumn != null) {
-                    SavedInstanceEventListener listener = new SavedInstanceEventListener(platform);
-                    listener.setPathColumn(pathColumn);
-                    addAndroidEventListener(listener);
-                } else {
+                eventListener = new SavedInstanceEventListener(platform);
+                eventListener.setPathColumn(pathColumn);
+                addAndroidEventListener(eventListener);
+                if(pathColumn == null) {
                     picturePath = savedInstanceState.getString(SAVED_INSTANCE_STATE_PICTURE_PATH);
                     platform.setApplicationArgument(ApplicationArguments.ADD_PICTURE_PATH, picturePath);
                 }
@@ -206,7 +200,7 @@ public class EditorActivity extends AndroidApplication {
         super.onActivityResult(requestCode, resultCode, data);
 		ActivityResultListener listener = this.listeners.get(requestCode);
 		if (listener != null) {
-			Log.d(tag, "listener is NOT null");
+			Log.d(tag, "eventListener is NOT null");
 			listener.result(resultCode, data);
 		}
 	}
@@ -222,6 +216,9 @@ public class EditorActivity extends AndroidApplication {
 	@Override
 	protected void onResume() {
 		Log.d(tag, "onResume");
+        if(eventListener != null){
+            removeAndroidEventListener(eventListener);
+        }
 		handleIntent();
 		super.onResume();
 		// This is necessary because we are using non-continuous rendering and

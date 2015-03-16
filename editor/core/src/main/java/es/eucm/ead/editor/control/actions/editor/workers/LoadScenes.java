@@ -36,6 +36,7 @@
  */
 package es.eucm.ead.editor.control.actions.editor.workers;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.utils.Array;
 import es.eucm.ead.editor.control.actions.EditorAction;
@@ -80,17 +81,24 @@ public class LoadScenes extends EditorAction implements WorkerListener {
             // We try to recover the saved instance state that we had right before getting killed
 			controller.action(SetEditedScene.class, id, scene);
             Platform platform = controller.getPlatform();
-            String elemPath = (String) platform.getApplicationArgument(ApplicationArguments.ADD_SCENE_ELEMENT_PATH);
-            if(elemPath != null) {
-                ModelEntity sceneElement = controller.getTemplates().createSceneElement(elemPath, false);
-                controller.action(AddSceneElement.class, sceneElement);
-            } else {
-                String picturePath = (String) platform.getApplicationArgument(ApplicationArguments.ADD_PICTURE_PATH);
-                if((Boolean) platform.getApplicationArgument(ApplicationArguments.RESULT_OK)){
 
+            Object result = platform.getApplicationArgument(ApplicationArguments.RESULT_OK);
+            if(result != null && (Boolean) result) {
+                String elemPath = (String) platform.getApplicationArgument(ApplicationArguments.ADD_SCENE_ELEMENT_PATH);
+                if (elemPath != null) {
+                    ModelEntity sceneElement = controller.getTemplates().createSceneElement(elemPath, false);
+                    controller.action(AddSceneElement.class, sceneElement);
                 } else {
-
+                    String picturePath = (String) platform.getApplicationArgument(ApplicationArguments.ADD_PICTURE_PATH);
+                    if (picturePath != null) {
+                        ModelEntity sceneElement = controller.getTemplates().createSceneElement(picturePath, false);
+                        controller.action(AddSceneElement.class, sceneElement);
+                    } else {
+                        Gdx.app.log("Mokap test", "se canceló la toma de foto......");
+                    }
                 }
+            } else {
+                Gdx.app.log("Mokap test", "result IS NOT OK...");
             }
         }
 	}
