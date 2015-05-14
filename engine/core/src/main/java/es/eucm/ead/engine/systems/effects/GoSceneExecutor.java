@@ -95,7 +95,6 @@ public class GoSceneExecutor extends EffectExecutor<GoScene> implements
 				.getSceneId();
 		transitionManager.setVisible(this.previousScene != null);
 
-		Group sceneLayer = gameView.getLayer(Layer.SCENE_CONTENT).getGroup();
 		transitionManager.setViewport(gameView.getScreenX(),
 				gameView.getScreenY(), gameView.getScreenWidth(),
 				gameView.getScreenHeight(), gameView.getPixelsWidth(),
@@ -103,11 +102,12 @@ public class GoSceneExecutor extends EffectExecutor<GoScene> implements
 				gameView.getWorldHeight());
 
 		transitionManager.setTransition(
-				effect.isWaitLoading(),
-				getTransition(effect.getTransition(), effect.getDuration(),
-						false));
+                effect.isWaitLoading(),
+                getTransition(effect.getTransition(), effect.getDuration(),
+                        false));
 		gameLoop.setPlaying(effect.isUpdateGameLoop());
 
+		Group sceneLayer = gameView.getLayer(Layer.SCENE_CONTENT).getGroup();
 		if (sceneLayer.getChildren().size == 1) {
 			Actor currentScene = sceneLayer.getChildren().get(0);
 			transitionManager.setCurrentScene(currentScene.getStage()
@@ -115,7 +115,7 @@ public class GoSceneExecutor extends EffectExecutor<GoScene> implements
 		}
 
 		gameView.clearLayer(Layer.SCENE_CONTENT, true);
-		sceneLayer.addActor(transitionManager);
+        sceneLayer.addActor(transitionManager);
 
 		Gdx.app.postRunnable(new Runnable() {
 			@Override
