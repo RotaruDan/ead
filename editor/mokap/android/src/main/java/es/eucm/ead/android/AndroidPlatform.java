@@ -508,12 +508,12 @@ public class AndroidPlatform extends MokapPlatform {
 
 	@Override
 	public String getLocale() {
-		return Locale.getDefault().toString();
+		return Locale.UK.toString();
 	}
 
 	@Override
 	public boolean isDebug() {
-		return (0 != (context.getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE));
+		return false;
 	}
 
 	@Override
