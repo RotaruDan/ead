@@ -61,6 +61,7 @@ import es.eucm.ead.editor.view.widgets.selectors.Selector;
 import es.eucm.ead.schema.components.ModelComponent;
 import es.eucm.ead.schema.components.behaviors.Behavior;
 import es.eucm.ead.schema.components.behaviors.events.Touch;
+import es.eucm.ead.schema.editor.components.repo.RepoCategories;
 import es.eucm.ead.schema.effects.PlaySound;
 import es.eucm.ead.schema.entities.ModelEntity;
 import es.eucm.ead.schemax.ComponentIds;
@@ -94,7 +95,9 @@ public class SoundEditor extends ComponentEditor<Behavior> implements
 				Views views = controller.getViews();
 				float duration = 0.57f;
 				SoundsView builder = views.getBuilder(SoundsView.class);
-				soundSelector = builder.getView(SoundEditor.this);
+				soundSelector = builder.getView(SoundEditor.this,
+						RepoCategories.SOUNDS_EFFECTS.toString(),
+						i18N.m("sounds"));
 				soundSelector.setX(Gdx.graphics.getWidth());
 				soundSelector.addAction(Actions.moveTo(0, 0, duration,
 						Interpolation.exp5Out));

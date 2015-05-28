@@ -155,6 +155,10 @@ public class TabsGallery extends AbstractWidget {
 		return toolbar;
 	}
 
+	public void setTitle(String title) {
+		this.title.setText(title);
+	}
+
 	public void changeTitle(String text) {
 		title.setText(text);
 	}

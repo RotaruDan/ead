@@ -73,6 +73,7 @@ import es.eucm.ead.engine.I18N;
 import es.eucm.ead.schema.components.ModelComponent;
 import es.eucm.ead.schema.components.behaviors.Behavior;
 import es.eucm.ead.schema.components.behaviors.events.Init;
+import es.eucm.ead.schema.editor.components.repo.RepoCategories;
 import es.eucm.ead.schema.effects.PlaySound;
 import es.eucm.ead.schema.entities.ModelEntity;
 import es.eucm.ead.schemax.ComponentIds;
@@ -138,7 +139,8 @@ public class ShowMusic extends EditorAction implements
 				Views views = controller.getViews();
 				float duration = 0.57f;
 				SoundsView builder = views.getBuilder(SoundsView.class);
-				soundSelector = builder.getView(ShowMusic.this);
+				soundSelector = builder.getView(ShowMusic.this,
+						RepoCategories.SOUNDS_MUSIC.toString(), i18N.m("music"));
 				soundSelector.setX(Gdx.graphics.getWidth());
 				soundSelector.addAction(Actions.moveTo(0, 0, duration,
 						Interpolation.exp5Out));

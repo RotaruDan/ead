@@ -192,6 +192,11 @@ public class SoundsView implements ViewBuilder {
 	@Override
 	public Actor getView(Object... args) {
 		selector = (Selector.SelectorListener<String>) args[0];
+		if (args.length == 3) {
+			String category = (String) args[1];
+			repoGallery.changeCategory(category);
+			tabsGallery.setTitle((String) args[2]);
+		}
 		tabsGallery.loadContents();
 
 		return tabsGallery;
